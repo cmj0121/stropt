@@ -1,6 +1,7 @@
 package stropt
 
 import (
+	"os"
 	"testing"
 )
 
@@ -9,7 +10,11 @@ type Foo struct {
 
 func Example() {
 	foo := Foo{}
-	MustNew(foo)
+	parser := MustNew(&foo)
+
+	parser.Usage(os.Stdout)
+	// Output:
+	// usage: foo
 }
 
 func TestInvalidType(t *testing.T) {
