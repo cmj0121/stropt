@@ -7,7 +7,8 @@ import (
 
 type Foo struct {
 	// the flip option, store true/false
-	Flip bool
+	Flip  bool
+	Flip2 bool `shortcut:"f" name:"flip-2"`
 }
 
 func Example() {
@@ -20,6 +21,7 @@ func Example() {
 	//
 	// options:
 	//         --flip
+	//      -f --flip-2
 }
 
 func TestInvalidType(t *testing.T) {

@@ -146,13 +146,13 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (fi
 
 // show the field description
 func (stropt *StrOpt) description(typ reflect.StructField) (desc string) {
-	var shortcut rune
+	var shortcut string
 	name := strings.ToLower(typ.Name)
 
 	if value, ok := typ.Tag.Lookup(KEY_NAME); ok {
 		// override the field's name
 		stropt.Tracef("override field name %v: %v", name, value)
-		name = strings.ToLower(name)
+		name = strings.ToLower(value)
 	}
 
 	if value, ok := typ.Tag.Lookup(KEY_SHORTCUT); ok {
@@ -164,18 +164,21 @@ func (stropt *StrOpt) description(typ reflect.StructField) (desc string) {
 		case len(runes) > 1:
 			stropt.Warnf("shortcut too large: %v (should be one and only one rune", value)
 		default:
-			shortcut = runes[0]
+			shortcut = string(runes[0])
 		}
 	}
 
 	switch {
-	case len(name) > 0 && shortcut != rune(0):
-		desc = fmt.Sprintf("    -%v --%v", shortcut, strings.ToLower(typ.Name))
+	case len(name) > 0 && len(shortcut) > 0:
+		shortcut = fmt.Sprintf("-%v", shortcut)
+		name = fmt.Sprintf("--%v", name)
 	case len(name) > 0:
-		desc = fmt.Sprintf("        --%v", strings.ToLower(typ.Name))
-	case shortcut != rune(0):
-		desc = fmt.Sprintf("    -%v     ", shortcut)
+		name = fmt.Sprintf("--%v", name)
+	case len(shortcut) > 0:
+		shortcut = fmt.Sprintf("-%v", shortcut)
 	}
 
+	desc = fmt.Sprintf("%3v %v", shortcut, name)
+	desc = strings.TrimRight(fmt.Sprintf("    %-22v", desc), " ")
 	return
 }
