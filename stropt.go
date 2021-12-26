@@ -140,7 +140,7 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (fi
 	case reflect.Bool: // the flip option
 		field, err = NewFlip(stropt.Tracer, value, typ)
 	default: // may flag option
-		err = fmt.Errorf("not implement %v (%v)", value, typ)
+		field, err = NewFlag(stropt.Tracer, value, typ)
 		return
 	}
 	return

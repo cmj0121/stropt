@@ -14,6 +14,13 @@ type Foo struct {
 	// the flip option, store true/false
 	Flip  bool
 	Flip2 bool `shortcut:"f" name:"flip-2"`
+
+	// the argument
+	Age    uint `shortcut:"a"`
+	Number int
+	Name   string
+	Price  float64   `shortcut:"p"`
+	Point  complex64 `shortcut:"P"`
 }
 
 func Example() {
@@ -27,6 +34,11 @@ func Example() {
 	// options:
 	//         --flip
 	//      -f --flip-2
+	//      -a --age
+	//         --number
+	//         --name
+	//      -p --price
+	//      -P --point
 }
 
 func TestInvalidType(t *testing.T) {
