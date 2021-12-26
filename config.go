@@ -9,6 +9,14 @@ const (
 	MACRO = 0 // bump when bug fixed
 )
 
+// pre-defined key of the tag
+var (
+	// the shortcut of the field
+	KEY_SHORTCUT = "shortcut"
+	// the name of the field
+	KEY_NAME = "name"
+)
+
 // pre-defined tag used in stropt
 var (
 	// the field should be ignored in stropt

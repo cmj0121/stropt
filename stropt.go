@@ -82,7 +82,7 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 
 		usage = append(usage, "options:")
 		for _, field := range stropt.fields {
-			usage = append(usage, field.Description())
+			usage = append(usage, stropt.description(field.Field()))
 		}
 	default:
 		usage = append(usage, fmt.Sprintf("usage: %v", stropt.name))
@@ -121,8 +121,6 @@ func (stropt *StrOpt) prologue(typ reflect.Type) (err error) {
 			}
 		}
 
-		// modify the field attributes
-		stropt.modifyField(field, field_type)
 		stropt.fields = append(stropt.fields, field)
 	}
 	return
@@ -138,7 +136,7 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (fi
 		err = fmt.Errorf("not implement %v (%v)", value, typ)
 		return
 	case reflect.Bool: // the flip option
-		field, err = NewFlip(stropt.Tracer, value)
+		field, err = NewFlip(stropt.Tracer, value, typ)
 	default: // may flag option
 		err = fmt.Errorf("not implement %v (%v)", value, typ)
 		return
@@ -146,8 +144,38 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (fi
 	return
 }
 
-// setup / modify the field attributes
-func (stropt *StrOpt) modifyField(field Field, typ reflect.StructField) {
-	desc := fmt.Sprintf("    --%v", strings.ToLower(typ.Name))
-	field.SetDescription(desc)
+// show the field description
+func (stropt *StrOpt) description(typ reflect.StructField) (desc string) {
+	var shortcut rune
+	name := strings.ToLower(typ.Name)
+
+	if value, ok := typ.Tag.Lookup(KEY_NAME); ok {
+		// override the field's name
+		stropt.Tracef("override field name %v: %v", name, value)
+		name = strings.ToLower(name)
+	}
+
+	if value, ok := typ.Tag.Lookup(KEY_SHORTCUT); ok {
+		// override the field' shortcut, should be rune
+		runes := []rune(value)
+		switch {
+		case len(runes) == 0:
+			// no changed
+		case len(runes) > 1:
+			stropt.Warnf("shortcut too large: %v (should be one and only one rune", value)
+		default:
+			shortcut = runes[0]
+		}
+	}
+
+	switch {
+	case len(name) > 0 && shortcut != rune(0):
+		desc = fmt.Sprintf("    -%v --%v", shortcut, strings.ToLower(typ.Name))
+	case len(name) > 0:
+		desc = fmt.Sprintf("        --%v", strings.ToLower(typ.Name))
+	case shortcut != rune(0):
+		desc = fmt.Sprintf("    -%v     ", shortcut)
+	}
+
+	return
 }

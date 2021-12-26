@@ -15,19 +15,20 @@ type Flip struct {
 	// the value should be set
 	reflect.Value
 
-	// the description of field
-	desc string
+	// the field of the struct
+	reflect.StructField
 }
 
-func NewFlip(tracer *trace.Tracer, value reflect.Value) (flip *Flip, err error) {
+func NewFlip(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (flip *Flip, err error) {
 	if value.Kind() != reflect.Bool {
 		err = fmt.Errorf("cannot set %v as flip", value)
 		return
 	}
 
 	flip = &Flip{
-		Tracer: tracer,
-		Value:  value,
+		Tracer:      tracer,
+		Value:       value,
+		StructField: typ,
 	}
 
 	return
@@ -40,13 +41,8 @@ func (flip *Flip) Parse(args ...string) (n int, err error) {
 	return
 }
 
-// set the field description
-func (flip *Flip) SetDescription(desc string) {
-	flip.desc = desc
-}
-
-// get the field description
-func (flip *Flip) Description() (desc string) {
-	desc = flip.desc
+// return the StructField of the field
+func (flip *Flip) Field() (typ reflect.StructField) {
+	typ = flip.StructField
 	return
 }

@@ -19,7 +19,7 @@ func Example() {
 	// usage: foo [OPTION]
 	//
 	// options:
-	//     --flip
+	//         --flip
 }
 
 func TestInvalidType(t *testing.T) {
