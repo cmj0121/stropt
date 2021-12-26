@@ -14,6 +14,18 @@ type Inner struct {
 	InnerX int `name:"inner-x" desc:"the inner field"`
 }
 
+type Sub struct {
+	// the hidden field
+	Ignore bool `-` //nolint
+	// the innter field and should not process
+	ignore bool `desc:"the ignore field"` //nolint
+
+	// the flip option, store true/false
+	Flip bool `desc:"store true/false field"`
+	// the argument
+	Age uint `shortcut:"a"`
+}
+
 type Foo struct {
 	// the hidden field
 	Ignore bool `-` //nolint
@@ -33,6 +45,9 @@ type Foo struct {
 
 	// the embedded struct, should extend as the normal fields
 	Inner
+
+	// the sub-command
+	*Sub `name:"subc"`
 }
 
 func Example() {
@@ -41,7 +56,7 @@ func Example() {
 
 	parser.Usage(os.Stdout)
 	// Output:
-	// usage: foo [OPTION]
+	// usage: foo [OPTION] [SUB-COMMAND]
 	//
 	// options:
 	//         --flip             store true/false field
@@ -52,6 +67,9 @@ func Example() {
 	//      -p --price            store float number
 	//      -P --point
 	//         --inner-x          the inner field
+	//
+	// sub-commands:
+	//         subc
 }
 
 func TestInvalidType(t *testing.T) {

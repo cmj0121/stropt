@@ -47,8 +47,14 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 	}
 }
 
-// return the StructField of the field
-func (flag *Flag) Field() (typ reflect.StructField) {
-	typ = flag.StructField
+// return the Tag of the field
+func (flag *Flag) GetTag() (tag reflect.StructTag) {
+	tag = flag.StructField.Tag
+	return
+}
+
+// return the original name of the field
+func (flag *Flag) GetName() (name string) {
+	name = flag.StructField.Name
 	return
 }

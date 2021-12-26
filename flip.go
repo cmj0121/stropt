@@ -41,8 +41,14 @@ func (flip *Flip) Parse(args ...string) (n int, err error) {
 	return
 }
 
-// return the StructField of the field
-func (flip *Flip) Field() (typ reflect.StructField) {
-	typ = flip.StructField
+// return the Tag of the field
+func (flip *Flip) GetTag() (tag reflect.StructTag) {
+	tag = flip.StructField.Tag
+	return
+}
+
+// return the original name of the field
+func (flip *Flip) GetName() (name string) {
+	name = flip.StructField.Name
 	return
 }
