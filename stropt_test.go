@@ -6,6 +6,8 @@ import (
 )
 
 type Foo struct {
+	// the flip option, store true/false
+	Flip bool
 }
 
 func Example() {
@@ -14,7 +16,10 @@ func Example() {
 
 	parser.Usage(os.Stdout)
 	// Output:
-	// usage: foo
+	// usage: foo [OPTION]
+	//
+	// options:
+	//     --flip
 }
 
 func TestInvalidType(t *testing.T) {
