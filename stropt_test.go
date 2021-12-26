@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+type Inner struct {
+	// the hidden field
+	Ignore bool `-` //nolint
+	// the innter field and should not process
+	ignore bool `desc:"the ignore field"` //nolint
+
+	InnerX int `name:"inner-x" desc:"the inner field"`
+}
+
 type Foo struct {
 	// the hidden field
 	Ignore bool `-` //nolint
@@ -21,6 +30,9 @@ type Foo struct {
 	Name   string
 	Price  float64   `shortcut:"p" desc:"store float number"`
 	Point  complex64 `shortcut:"P"`
+
+	// the embedded struct, should extend as the normal fields
+	Inner
 }
 
 func Example() {
@@ -39,6 +51,7 @@ func Example() {
 	//         --name
 	//      -p --price            store float number
 	//      -P --point
+	//         --inner-x          the inner field
 }
 
 func TestInvalidType(t *testing.T) {

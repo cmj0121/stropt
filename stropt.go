@@ -48,7 +48,7 @@ func New(in interface{}) (stropt *StrOpt, err error) {
 
 	stropt.Infof("new StrOpt: %[1]v (%[1]T)", in)
 	// pass the type of Struct (not the *Struct)
-	err = stropt.prologue(reflect.TypeOf(in).Elem())
+	err = stropt.prologue(stropt.Value.Elem(), reflect.TypeOf(in).Elem())
 	return
 }
 
@@ -101,48 +101,53 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 }
 
 // parse the pass Struct into fields
-func (stropt *StrOpt) prologue(typ reflect.Type) (err error) {
+func (stropt *StrOpt) prologue(value reflect.Value, typ reflect.Type) (err error) {
 	for idx := 0; idx < typ.NumField(); idx++ {
 		field_type := typ.Field(idx)
-		field_value := stropt.Value.Elem().Field(idx)
+		field_value := value.Field(idx)
 
-		var field Field
 		stropt.Tracef("process #%d field: %v (%v, %v)", idx, field_value, field_type, field_type.Tag)
-
-		switch {
-		case !field_value.CanSet():
-			stropt.Debugf("field #%v cannot be set, skip", idx)
-			continue
-		case strings.TrimSpace(string(field_type.Tag)) == TAG_IGNORE:
-			stropt.Debugf("field #%v expressily been skip", idx)
-			continue
-		default:
-			if field, err = stropt.setField(field_value, field_type); err != nil {
-				err = fmt.Errorf("set #%v field: %v", idx, err)
-				return
-			}
+		if err = stropt.setField(field_value, field_type); err != nil {
+			err = fmt.Errorf("set #%v field: %v", idx, err)
+			return
 		}
-
-		stropt.fields = append(stropt.fields, field)
 	}
 	return
 }
 
 // set the pass reflect.Value and reflect.StructField to Field
-func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (field Field, err error) {
-	switch typ.Type.Kind() {
-	case reflect.Ptr: // argument or sub-command
-		err = fmt.Errorf("not implement %v (%v)", value, typ)
+func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (err error) {
+	var field Field
+
+	switch {
+	case !value.CanSet():
+		stropt.Debugf("field #%v cannot be set, skip", value)
 		return
-	case reflect.Struct: // may embedded field
-		err = fmt.Errorf("not implement %v (%v)", value, typ)
+	case strings.TrimSpace(string(typ.Tag)) == TAG_IGNORE:
+		stropt.Debugf("field %v expressily been skip", value)
 		return
-	case reflect.Bool: // the flip option
-		field, err = NewFlip(stropt.Tracer, value, typ)
-	default: // may flag option
-		field, err = NewFlag(stropt.Tracer, value, typ)
-		return
+	default:
+		switch typ.Type.Kind() {
+		case reflect.Ptr: // argument or sub-command
+			err = fmt.Errorf("not implement %v (%v)", value, typ)
+			return
+		case reflect.Struct: // may embedded field
+			err = stropt.prologue(value, typ.Type)
+			return
+		case reflect.Bool: // the flip option
+			if field, err = NewFlip(stropt.Tracer, value, typ); err != nil {
+				err = fmt.Errorf("new flip from %v: %v", value, err)
+				return
+			}
+		default: // may flag option
+			if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
+				err = fmt.Errorf("new flag from %v: %v", value, err)
+				return
+			}
+		}
 	}
+
+	stropt.fields = append(stropt.fields, field)
 	return
 }
 
