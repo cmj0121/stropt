@@ -6,6 +6,11 @@ import (
 )
 
 type Foo struct {
+	// the hidden field
+	Ignore bool `-` //nolint
+	// the innter field and should not process
+	ignore bool //nolint
+
 	// the flip option, store true/false
 	Flip  bool
 	Flip2 bool `shortcut:"f" name:"flip-2"`

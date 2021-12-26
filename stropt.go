@@ -107,13 +107,15 @@ func (stropt *StrOpt) prologue(typ reflect.Type) (err error) {
 		field_value := stropt.Value.Elem().Field(idx)
 
 		var field Field
-		stropt.Tracef("process #%d field: %v (%v)", idx, field_value, field_type)
+		stropt.Tracef("process #%d field: %v (%v, %v)", idx, field_value, field_type, field_type.Tag)
 
 		switch {
 		case !field_value.CanSet():
 			stropt.Debugf("field #%v cannot be set, skip", idx)
+			continue
 		case strings.TrimSpace(string(field_type.Tag)) == TAG_IGNORE:
 			stropt.Debugf("field #%v expressily been skip", idx)
+			continue
 		default:
 			if field, err = stropt.setField(field_value, field_type); err != nil {
 				err = fmt.Errorf("set #%v field: %v", idx, err)
