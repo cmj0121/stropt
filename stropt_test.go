@@ -9,17 +9,17 @@ type Foo struct {
 	// the hidden field
 	Ignore bool `-` //nolint
 	// the innter field and should not process
-	ignore bool //nolint
+	ignore bool `desc:"the ignore field"` //nolint
 
 	// the flip option, store true/false
-	Flip  bool
+	Flip  bool `desc:"store true/false field"`
 	Flip2 bool `shortcut:"f" name:"flip-2"`
 
 	// the argument
 	Age    uint `shortcut:"a"`
-	Number int
+	Number int  `desc:"store integer"`
 	Name   string
-	Price  float64   `shortcut:"p"`
+	Price  float64   `shortcut:"p" desc:"store float number"`
 	Point  complex64 `shortcut:"P"`
 }
 
@@ -32,12 +32,12 @@ func Example() {
 	// usage: foo [OPTION]
 	//
 	// options:
-	//         --flip
+	//         --flip             store true/false field
 	//      -f --flip-2
 	//      -a --age
-	//         --number
+	//         --number           store integer
 	//         --name
-	//      -p --price
+	//      -p --price            store float number
 	//      -P --point
 }
 

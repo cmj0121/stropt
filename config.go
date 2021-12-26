@@ -15,6 +15,8 @@ var (
 	KEY_SHORTCUT = "shortcut"
 	// the name of the field
 	KEY_NAME = "name"
+	// the description of the field
+	KEY_DESC = "desc"
 )
 
 // pre-defined tag used in stropt

@@ -180,7 +180,10 @@ func (stropt *StrOpt) description(typ reflect.StructField) (desc string) {
 		shortcut = fmt.Sprintf("-%v", shortcut)
 	}
 
+	// the helper description of the field
+	help, _ := typ.Tag.Lookup(KEY_DESC)
+
 	desc = fmt.Sprintf("%3v %v", shortcut, name)
-	desc = strings.TrimRight(fmt.Sprintf("    %-22v", desc), " ")
+	desc = strings.TrimRight(fmt.Sprintf("    %-22v %v", desc, help), " ")
 	return
 }
