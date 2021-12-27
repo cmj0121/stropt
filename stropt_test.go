@@ -27,6 +27,8 @@ type Sub struct {
 }
 
 type Foo struct {
+	Help
+
 	// the hidden field
 	Ignore bool `-` //nolint
 	// the innter field and should not process
@@ -59,6 +61,7 @@ func Example() {
 	// usage: foo [OPTION] [SUB-COMMAND]
 	//
 	// options:
+	//      -h --help             show this help message
 	//         --flip             store true/false field
 	//      -f --flip-2
 	//      -a --age
