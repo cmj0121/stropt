@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"reflect"
 	"strings"
 
@@ -121,7 +120,62 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 // parse the input arguments and fill the *Struct, return error when failure.
 func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 	stropt.Tracef("start parse: %v", args)
-	stropt.Usage(os.Stderr)
+
+	no_option := false
+	idx := 0
+	for idx < len(args) {
+		nargs := 0
+		token := args[idx]
+		stropt.Debugf("parse #%v: %v", idx, token)
+
+		switch {
+		case token == "--":
+			no_option = true
+			stropt.Infof("explicit claims no options remains")
+		case !no_option && token[:2] == "--":
+			field, ok := stropt.named_fields[token[2:]]
+			if !ok {
+				err = fmt.Errorf("option %v not found", token)
+				return
+			} else if nargs, err = field.Parse(args[idx+1:]...); err != nil {
+				err = fmt.Errorf("parse %v: %v", token, err)
+				return
+			}
+
+			idx += nargs
+		case !no_option && token[:1] == "-":
+			switch len(token) {
+			case 2:
+				// single shortcut
+				field, ok := stropt.named_fields[token[1:]]
+				if !ok {
+					err = fmt.Errorf("option %v not found", token)
+					return
+				} else if nargs, err = field.Parse(args[idx+1:]...); err != nil {
+					err = fmt.Errorf("parse %v: %v", token, err)
+					return
+				}
+
+				idx += nargs
+			default:
+				// multiple shortcut
+				for _, shortcut := range token[1:] {
+					field, ok := stropt.named_fields[string(shortcut)]
+					if !ok {
+						err = fmt.Errorf("option -%v not found", token)
+						return
+					} else if _, err = field.Parse(); err != nil {
+						err = fmt.Errorf("parse -%v: %v", shortcut, err)
+						return
+					}
+				}
+			}
+		default:
+		}
+
+		idx++
+	}
+
 	return
 }
 

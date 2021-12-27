@@ -100,3 +100,29 @@ func TestInvalidType(t *testing.T) {
 		}
 	}
 }
+
+func TestParseFlip(t *testing.T) {
+	foo := Foo{}
+	parser := MustNew(&foo)
+
+	parser.Parse("--flip")            //nolint
+	parser.Parse("--flip", "--flip")  //nolint
+	parser.Parse("-f", "-ff", "-fff") //nolint
+}
+
+func TestParseFlag(t *testing.T) {
+	foo := Foo{}
+	parser := MustNew(&foo)
+
+	parser.Parse("--age", "12") //nolint
+	parser.Parse("-a", "12")    //nolint
+}
+
+func TestParseWithDoubleDash(t *testing.T) {
+	foo := Foo{}
+	parser := MustNew(&foo)
+
+	parser.Parse("--flip", "--", "--flip")           //nolint
+	parser.Parse("--flip", "--flip", "--", "--flip") //nolint
+	parser.Parse("-f", "-ff", "--", "-fff")          //nolint
+}
