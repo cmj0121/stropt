@@ -16,6 +16,8 @@ var (
 var (
 	// the pre-defined callback, show the help message
 	CALLBACK_HELP = "_help"
+	// the pre-defined callback, show the version info
+	CALLBACK_VERSION = "_version"
 )
 
 // the callback function called when field set.

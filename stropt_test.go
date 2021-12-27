@@ -27,7 +27,7 @@ type Sub struct {
 }
 
 type Foo struct {
-	Help
+	Model
 
 	// the hidden field
 	Ignore bool `-` //nolint
@@ -61,7 +61,8 @@ func Example() {
 	// usage: foo [OPTION] [SUB-COMMAND]
 	//
 	// options:
-	//      -h --help             show this help message
+	//      -h --help             show this help message and exit
+	//      -v --version          show the version and exit
 	//         --flip             store true/false field
 	//      -f --flip-2
 	//      -a --age
