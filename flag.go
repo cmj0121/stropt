@@ -3,6 +3,7 @@ package stropt
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/cmj0121/trace"
 )
@@ -55,6 +56,30 @@ func (flag *Flag) GetTag() (tag reflect.StructTag) {
 
 // return the original name of the field
 func (flag *Flag) GetName() (name string) {
-	name = flag.StructField.Name
+	name = strings.ToLower(flag.StructField.Name)
+
+	if value, ok := flag.StructField.Tag.Lookup(KEY_NAME); ok {
+		// override the field's name
+		name = strings.ToLower(value)
+	}
+
+	return
+}
+
+// return the shortcut of the field
+func (flag *Flag) GetShortcut() (shortcut string) {
+	if value, ok := flag.StructField.Tag.Lookup(KEY_SHORTCUT); ok {
+		// override the field' shortcut, should be rune
+		runes := []rune(value)
+		switch {
+		case len(runes) == 0:
+			// no changed
+		case len(runes) > 1:
+			flag.Warnf("shortcut too large: %v (should be one and only one rune", value)
+		default:
+			shortcut = string(runes[0])
+		}
+	}
+
 	return
 }

@@ -26,6 +26,8 @@ type StrOpt struct {
 	tag reflect.StructTag
 	// the flip/flag fields, append by the order
 	fields []Field
+	// named field
+	named_fields map[string]Field
 	// the sub-commands
 	subs []Field
 }
@@ -48,6 +50,8 @@ func New(in interface{}) (stropt *StrOpt, err error) {
 		Tracer: trace.GetTracer(PROJ_NAME),
 		// the internal fields
 		name: strings.ToLower(value.Elem().Type().Name()),
+		// named field, call when parse argument and set field
+		named_fields: map[string]Field{},
 	}
 
 	stropt.Infof("new StrOpt: %[1]v (%[1]T)", in)
@@ -162,11 +166,11 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 			}
 
 			sub := &StrOpt{
-				Value:  value,
-				Tracer: stropt.Tracer,
-				name:   name,
-				tag:    typ.Tag,
-				fields: []Field{},
+				Value:        value,
+				Tracer:       stropt.Tracer,
+				name:         name,
+				tag:          typ.Tag,
+				named_fields: map[string]Field{},
 			}
 
 			new_value := reflect.New(typ.Type.Elem()).Elem()
@@ -194,32 +198,30 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 	}
 
 	stropt.fields = append(stropt.fields, field)
+
+	// set named field
+	name := field.GetName()
+	if _, ok := stropt.named_fields[name]; ok {
+		err = fmt.Errorf("duplicate field name: %v", name)
+		return
+	}
+	stropt.named_fields[name] = field
+
+	if shortcut := field.GetShortcut(); len(shortcut) > 0 {
+		if _, ok := stropt.named_fields[shortcut]; ok {
+			err = fmt.Errorf("duplicate field shortcut: %v", shortcut)
+			return
+		}
+		stropt.named_fields[shortcut] = field
+	}
+
 	return
 }
 
 // show the field description
 func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
-	var shortcut string
-	name := strings.ToLower(field.GetName())
-
-	if value, ok := field.GetTag().Lookup(KEY_NAME); ok {
-		// override the field's name
-		stropt.Tracef("override field name %v: %v", name, value)
-		name = strings.ToLower(value)
-	}
-
-	if value, ok := field.GetTag().Lookup(KEY_SHORTCUT); ok && !sub {
-		// override the field' shortcut, should be rune
-		runes := []rune(value)
-		switch {
-		case len(runes) == 0:
-			// no changed
-		case len(runes) > 1:
-			stropt.Warnf("shortcut too large: %v (should be one and only one rune", value)
-		default:
-			shortcut = string(runes[0])
-		}
-	}
+	name := field.GetName()
+	shortcut := field.GetShortcut()
 
 	switch {
 	case sub:
@@ -249,5 +251,11 @@ func (stropt *StrOpt) GetTag() (tag reflect.StructTag) {
 // return the original name of the field
 func (stropt *StrOpt) GetName() (name string) {
 	name = stropt.name
+	return
+}
+
+// return the shortcut of the field
+func (stropt *StrOpt) GetShortcut() (shortcut string) {
+	// sub-command does not contains shortcut
 	return
 }

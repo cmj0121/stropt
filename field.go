@@ -10,8 +10,10 @@ type Field interface {
 	// parse and fill the field, return number of args used or error when failure
 	Parse(args ...string) (n int, err error)
 
-	// original name of the field
+	// name of the field
 	GetName() string
+	// shortcut of the field
+	GetShortcut() string
 	// the customized tag of the field
 	GetTag() reflect.StructTag
 }
