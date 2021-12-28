@@ -53,7 +53,7 @@ func CallCallback(name string, stropt *StrOpt, field Field) (err error) {
 		// always convert the name to their Unicode title case
 		callback_value := value.MethodByName(strings.ToTitle(name))
 
-		if !callback_value.IsZero() {
+		if callback_value.IsValid() && !callback_value.IsZero() {
 			callback, ok := callback_value.Interface().(Callback)
 			if ok {
 				// found the callback, call it

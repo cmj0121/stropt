@@ -87,10 +87,10 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 		usage = append(usage, fmt.Sprintf("usage: %v [OPTION] [SUB-COMMAND]", stropt.name))
 		usage = append(usage, "")
 	case len(stropt.fields) > 0:
-		usage = append(usage, fmt.Sprintf("usage: %v [SUB-COMMAND]", stropt.name))
+		usage = append(usage, fmt.Sprintf("usage: %v [OPTION]", stropt.name))
 		usage = append(usage, "")
 	case len(stropt.subs) > 0:
-		usage = append(usage, fmt.Sprintf("usage: %v [OPTION]", stropt.name))
+		usage = append(usage, fmt.Sprintf("usage: %v [SUB-COMMAND]", stropt.name))
 		usage = append(usage, "")
 	default:
 		usage = append(usage, fmt.Sprintf("usage: %v", stropt.name))
