@@ -8,7 +8,7 @@ import (
 // the helper model for show the help message
 type Help struct {
 	// this is the helper utility and show the help message
-	Help bool `shortcut:"h" name:"help" desc:"show this help message and exit" callback:"_help"`
+	Help bool `shortcut:"h" name:"help" desc:"show this help message and exit" callback:"Help_"`
 }
 
 // the help model for show the version info
@@ -16,7 +16,7 @@ type Model struct {
 	Help
 
 	// this is the helper utility and show the version info
-	Version bool `shortcut:"v" name:"version" desc:"show the version and exit" callback:"_version"`
+	Version bool `shortcut:"v" name:"version" desc:"show the version and exit" callback:"Version_"`
 }
 
 func init() {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"strings"
 
@@ -29,6 +30,8 @@ type StrOpt struct {
 	named_fields map[string]Field
 	// the sub-commands
 	subs []Field
+	// the version info
+	version string
 }
 
 // create an instance of StrOpt by input *StrOpt, may return error
@@ -179,6 +182,12 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 	return
 }
 
+// parse from the command-line arguments
+func (stropt *StrOpt) Run() (err error) {
+	_, err = stropt.Parse(os.Args[1:]...)
+	return
+}
+
 func (stropt *StrOpt) parse(field Field, args ...string) (n int, err error) {
 	if n, err = field.Parse(args...); err == nil {
 		if name, ok := field.GetTag().Lookup(KEY_CALLBACK); ok {
@@ -305,4 +314,20 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 	desc = fmt.Sprintf("%3v %v", shortcut, name)
 	desc = strings.TrimRight(fmt.Sprintf("    %-22v %v", desc, help), " ")
 	return
+}
+
+// show the version info
+func (stropt *StrOpt) Version_(_stropt *StrOpt, _field Field) (err error) {
+	switch stropt.version {
+	case "":
+		err = ERR_CALLBACK_NOT_IMPLEMENTED
+	default:
+		os.Stdout.WriteString(stropt.version)
+		os.Exit(0)
+	}
+	return
+}
+
+func (stropt *StrOpt) Version(ver string) {
+	stropt.version = ver
 }
