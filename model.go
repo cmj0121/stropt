@@ -26,9 +26,10 @@ func init() {
 }
 
 // show the usage on stderr, and exit
-func help(stropt *StrOpt, _field Field) {
+func help(stropt *StrOpt, _field Field) (err error) {
 	stropt.Usage(os.Stderr)
 	os.Exit(1)
+	return
 }
 
 var (
@@ -37,7 +38,7 @@ var (
 )
 
 // show the version info, may override by caller
-func version(stropt *StrOpt, _field Field) {
+func version(stropt *StrOpt, _field Field) (err error) {
 	if ver == "" {
 		// show the StrOpt version info
 		ver = fmt.Sprintf("%v (v%d.%d.%d)", PROJ_NAME, MAJOR, MINOR, MAJOR)
@@ -45,6 +46,7 @@ func version(stropt *StrOpt, _field Field) {
 
 	os.Stdout.WriteString(ver)
 	os.Exit(0)
+	return
 }
 
 func Version(_ver string) {

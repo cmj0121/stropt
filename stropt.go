@@ -137,7 +137,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 			if !ok {
 				err = fmt.Errorf("option %v not found", token)
 				return
-			} else if nargs, err = field.Parse(args[idx+1:]...); err != nil {
+			} else if nargs, err = stropt.parse(field, args[idx+1:]...); err != nil {
 				err = fmt.Errorf("parse %v: %v", token, err)
 				return
 			}
@@ -151,7 +151,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 				if !ok {
 					err = fmt.Errorf("option %v not found", token)
 					return
-				} else if nargs, err = field.Parse(args[idx+1:]...); err != nil {
+				} else if nargs, err = stropt.parse(field, args[idx+1:]...); err != nil {
 					err = fmt.Errorf("parse %v: %v", token, err)
 					return
 				}
@@ -164,7 +164,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 					if !ok {
 						err = fmt.Errorf("option -%v not found", token)
 						return
-					} else if _, err = field.Parse(); err != nil {
+					} else if _, err = stropt.parse(field); err != nil {
 						err = fmt.Errorf("parse -%v: %v", shortcut, err)
 						return
 					}
@@ -174,6 +174,17 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 		}
 
 		idx++
+	}
+
+	return
+}
+
+func (stropt *StrOpt) parse(field Field, args ...string) (n int, err error) {
+	if n, err = field.Parse(args...); err == nil {
+		if name, ok := field.GetTag().Lookup(KEY_CALLBACK); ok {
+			// call the callback function
+			err = CallCallback(name, stropt, field)
+		}
 	}
 
 	return
@@ -293,23 +304,5 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 
 	desc = fmt.Sprintf("%3v %v", shortcut, name)
 	desc = strings.TrimRight(fmt.Sprintf("    %-22v %v", desc, help), " ")
-	return
-}
-
-// return the Tag of the field
-func (stropt *StrOpt) GetTag() (tag reflect.StructTag) {
-	tag = stropt.tag
-	return
-}
-
-// return the original name of the field
-func (stropt *StrOpt) GetName() (name string) {
-	name = stropt.name
-	return
-}
-
-// return the shortcut of the field
-func (stropt *StrOpt) GetShortcut() (shortcut string) {
-	// sub-command does not contains shortcut
 	return
 }

@@ -1,7 +1,10 @@
 package stropt
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
+	"strings"
 	"sync"
 )
 
@@ -20,8 +23,13 @@ var (
 	CALLBACK_VERSION = "_version"
 )
 
+var (
+	// pre-defined error for not implemenetd callback
+	ERR_CALLBACK_NOT_IMPLEMENTED = errors.New("callback not implemenetd")
+)
+
 // the callback function called when field set.
-type Callback func(stropt *StrOpt, field Field)
+type Callback func(stropt *StrOpt, field Field) error
 
 func RegisterCallback(name string, callback Callback) {
 	callbacks_lock.Lock()
@@ -39,12 +47,29 @@ func CallCallback(name string, stropt *StrOpt, field Field) (err error) {
 	callbacks_lock.Lock()
 	defer callbacks_lock.Unlock()
 
+	if stropt != nil {
+		// call local callback if exists
+		value := reflect.ValueOf(stropt).Elem()
+		// always convert the name to their Unicode title case
+		callback_value := value.MethodByName(strings.ToTitle(name))
+
+		if !callback_value.IsZero() {
+			callback, ok := callback_value.Interface().(Callback)
+			if ok {
+				// found the callback, call it
+				err = callback(stropt, field)
+				return
+			}
+		}
+	}
+
+	// call global callback if exists
 	callback, ok := callbacks_pool[name]
 	if !ok {
 		err = fmt.Errorf("callback not found: %v", name)
 		return
 	}
 
-	callback(stropt, field)
+	err = callback(stropt, field)
 	return
 }

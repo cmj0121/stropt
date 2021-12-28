@@ -17,6 +17,8 @@ var (
 	KEY_NAME = "name"
 	// the description of the field
 	KEY_DESC = "desc"
+	// the callback function, may local or global
+	KEY_CALLBACK = "callback"
 )
 
 // pre-defined tag used in stropt
