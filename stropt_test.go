@@ -52,6 +52,7 @@ type Foo struct {
 
 	// arguments
 	Message *string `desc:"store string as position field"`
+	Amount  *int    `desc:"store int as position field"`
 
 	// the sub-command
 	*Sub `name:"subc"`
@@ -79,6 +80,9 @@ func Example() {
 	//
 	// arguments:
 	//         message            store string as position field
+	//         amount             store int as position field
+	//
+	// sub-commands:
 	//         subc
 }
 
@@ -266,5 +270,31 @@ func TestParseString(t *testing.T) {
 	} else if foo.Name != name {
 		// parse int fail
 		t.Errorf("parse int %v : %v", name, foo.Name)
+	}
+}
+
+func TestParseArgument(t *testing.T) {
+	foo := &Foo{}
+	parser := MustNew(foo)
+
+	if _, err := parser.Parse("message"); err != nil {
+		// cannot parse arguments
+		t.Errorf("cannot parse argument: %v", err)
+	} else if foo.Message == nil || *foo.Message != "message" {
+		// parse argument fail
+		t.Errorf("parse message fail: %#v", foo.Message)
+	}
+
+	if _, err := parser.Parse("123"); err != nil {
+		// cannot parse arguments
+		t.Errorf("cannot parse argument: %v", err)
+	} else if foo.Amount == nil || *foo.Amount != 123 {
+		// parse argument fail
+		t.Errorf("parse amount fail: %#v", foo.Amount)
+	}
+
+	if _, err := parser.Parse("ccc"); err == nil {
+		// expect cannot parse argument
+		t.Errorf("expect cannot parse extra argument")
 	}
 }

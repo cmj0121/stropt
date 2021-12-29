@@ -28,8 +28,11 @@ type StrOpt struct {
 	fields []Field
 	// named field, should be flip/flag
 	named_fields map[string]Field
-	// the sub-commands or arguments
-	subs []Field
+	// the arguments field, trigger sequencity
+	args_fields []Field
+	args_idx    int
+	// the named sub-command
+	sub_fields map[string]Field
 	// the version info
 	version string
 }
@@ -52,11 +55,12 @@ func New(in interface{}) (stropt *StrOpt, err error) {
 		Tracer: trace.GetTracer(PROJ_NAME),
 		// the internal fields
 		name: strings.ToLower(value.Elem().Type().Name()),
-		// named field, call when parse argument and set field
+		// named fields, call when parse argument and set field
 		named_fields: map[string]Field{},
+		// sub-command fields
+		sub_fields: map[string]Field{},
 	}
 
-	stropt.Level(trace.TRACE)
 	stropt.Infof("new StrOpt: %[1]v (%[1]T)", in)
 	// pass the type of Struct (not the *Struct)
 	err = stropt.prologue(stropt.Value.Elem(), reflect.TypeOf(in).Elem())
@@ -87,13 +91,13 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 	var usage []string
 
 	switch {
-	case len(stropt.fields) > 0 && len(stropt.subs) > 0:
+	case len(stropt.fields) > 0 && len(stropt.args_fields) > 0:
 		usage = append(usage, fmt.Sprintf("usage: %v [OPTION] [ARGS] ...", stropt.name))
 		usage = append(usage, "")
 	case len(stropt.fields) > 0:
 		usage = append(usage, fmt.Sprintf("usage: %v [OPTION]", stropt.name))
 		usage = append(usage, "")
-	case len(stropt.subs) > 0:
+	case len(stropt.args_fields) > 0:
 		usage = append(usage, fmt.Sprintf("usage: %v [ARGS] ...", stropt.name))
 		usage = append(usage, "")
 	default:
@@ -109,9 +113,17 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 		usage = append(usage, "")
 	}
 
-	if len(stropt.subs) > 0 {
+	if len(stropt.args_fields) > 0 {
 		usage = append(usage, "arguments:")
-		for _, field := range stropt.subs {
+		for _, field := range stropt.args_fields {
+			usage = append(usage, stropt.description(field, true))
+		}
+		usage = append(usage, "")
+	}
+
+	if len(stropt.sub_fields) > 0 {
+		usage = append(usage, "sub-commands:")
+		for _, field := range stropt.sub_fields {
 			usage = append(usage, stropt.description(field, true))
 		}
 		usage = append(usage, "")
@@ -126,7 +138,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 	stropt.Tracef("start parse: %v", args)
 
 	no_option := false
-	idx, args_idx := 0, 0
+	idx := 0
 	for idx < len(args) {
 		nargs := 0
 		token := args[idx]
@@ -175,12 +187,12 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 				}
 			}
 		default:
-			if args_idx >= len(stropt.subs) {
-				err = fmt.Errorf("unknown option/argument: %v", token)
+			if stropt.args_idx >= len(stropt.args_fields) {
+				err = fmt.Errorf("unknown argument: %v", token)
 				return
 			}
 
-			field := stropt.subs[args_idx]
+			field := stropt.args_fields[stropt.args_idx]
 			if nargs, err = stropt.parse(field, args[idx:]...); err != nil {
 				err = fmt.Errorf("parse %v fail: %v", token, err)
 				return
@@ -189,7 +201,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 			// note the args already take-out the first argument, which
 			// counts when break the switch-statement
 			idx += nargs - 1
-			args_idx ++
+			stropt.args_idx++
 		}
 
 		idx++
@@ -276,7 +288,7 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 					return
 				}
 
-				err = stropt.setArgument(sub)
+				err = stropt.setSub(sub)
 			default:
 				if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
 					err = fmt.Errorf("new flag from %v: %v", value, err)
@@ -330,7 +342,18 @@ func (stropt *StrOpt) setOption(field Field) (err error) {
 
 // set as the arguments
 func (stropt *StrOpt) setArgument(field Field) (err error) {
-	stropt.subs = append(stropt.subs, field)
+	stropt.args_fields = append(stropt.args_fields, field)
+	return
+}
+
+// set as the sub-command
+func (stropt *StrOpt) setSub(field Field) (err error) {
+	name := field.GetName()
+	if _, ok := stropt.sub_fields[name]; ok {
+		err = fmt.Errorf("duplicate sub-command: %v", name)
+		return
+	}
+	stropt.sub_fields[name] = field
 	return
 }
 

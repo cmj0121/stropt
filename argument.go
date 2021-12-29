@@ -26,7 +26,7 @@ func NewArgument(tracer *trace.Tracer, value reflect.Value, typ reflect.StructFi
 
 	shadow := reflect.New(typ.Type.Elem())
 	arg = &Argument{
-		Value: value,
+		Value:  value,
 		shadow: shadow,
 	}
 	arg.Flag, err = NewFlag(tracer, shadow.Elem(), typ)
