@@ -60,7 +60,7 @@ func Example() {
 
 	parser.Usage(os.Stdout)
 	// Output:
-	// usage: foo [OPTION] [SUB-COMMAND]
+	// usage: foo [OPTION] [ARGS] ...
 	//
 	// options:
 	//      -h --help             show this help message and exit
@@ -74,7 +74,7 @@ func Example() {
 	//      -P --point
 	//         --inner-x          the inner field
 	//
-	// sub-commands:
+	// arguments:
 	//         subc
 }
 

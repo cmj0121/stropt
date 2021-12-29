@@ -26,9 +26,9 @@ type StrOpt struct {
 	tag reflect.StructTag
 	// the flip/flag fields, append by the order
 	fields []Field
-	// named field
+	// named field, should be flip/flag
 	named_fields map[string]Field
-	// the sub-commands
+	// the sub-commands or arguments
 	subs []Field
 	// the version info
 	version string
@@ -87,13 +87,13 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 
 	switch {
 	case len(stropt.fields) > 0 && len(stropt.subs) > 0:
-		usage = append(usage, fmt.Sprintf("usage: %v [OPTION] [SUB-COMMAND]", stropt.name))
+		usage = append(usage, fmt.Sprintf("usage: %v [OPTION] [ARGS] ...", stropt.name))
 		usage = append(usage, "")
 	case len(stropt.fields) > 0:
 		usage = append(usage, fmt.Sprintf("usage: %v [OPTION]", stropt.name))
 		usage = append(usage, "")
 	case len(stropt.subs) > 0:
-		usage = append(usage, fmt.Sprintf("usage: %v [SUB-COMMAND]", stropt.name))
+		usage = append(usage, fmt.Sprintf("usage: %v [ARGS] ...", stropt.name))
 		usage = append(usage, "")
 	default:
 		usage = append(usage, fmt.Sprintf("usage: %v", stropt.name))
@@ -109,7 +109,7 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 	}
 
 	if len(stropt.subs) > 0 {
-		usage = append(usage, "sub-commands:")
+		usage = append(usage, "arguments:")
 		for _, field := range stropt.subs {
 			usage = append(usage, stropt.description(field, true))
 		}
@@ -125,7 +125,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 	stropt.Tracef("start parse: %v", args)
 
 	no_option := false
-	idx := 0
+	idx, args_idx := 0, 0
 	for idx < len(args) {
 		nargs := 0
 		token := args[idx]
@@ -174,8 +174,20 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 				}
 			}
 		default:
-			err = fmt.Errorf("unknown option/argument: %v", token)
-			return
+			if args_idx >= len(stropt.subs) {
+				err = fmt.Errorf("unknown option/argument: %v", token)
+				return
+			}
+
+			field := stropt.subs[args_idx]
+			if nargs, err = stropt.parse(field, args...); err != nil {
+				err = fmt.Errorf("parse %v fail: %v", token, err)
+				return
+			}
+
+			// note the args already take-out the first argument, which
+			// counts when break the switch-statement
+			idx += nargs - 1
 		}
 
 		idx++
@@ -237,29 +249,39 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 
 		switch typ.Type.Kind() {
 		case reflect.Ptr: // argument or sub-command
-			// create a new StrOpt as the sub-command
-			name := strings.ToLower(typ.Name)
-			if value, ok := typ.Tag.Lookup(KEY_NAME); ok {
-				stropt.Debugf("override the field name %#v: %#v", name, value)
-				name = strings.ToLower(value)
-			}
+			raw_type := typ.Type.Elem()
 
-			sub := &StrOpt{
-				Value:        value,
-				Tracer:       stropt.Tracer,
-				name:         name,
-				tag:          typ.Tag,
-				named_fields: map[string]Field{},
-			}
+			switch {
+			case raw_type.Kind() == reflect.Struct: // sub-command
+				// create a new StrOpt as the sub-command
+				name := strings.ToLower(typ.Name)
+				if value, ok := typ.Tag.Lookup(KEY_NAME); ok {
+					stropt.Debugf("override the field name %#v: %#v", name, value)
+					name = strings.ToLower(value)
+				}
 
-			new_value := reflect.New(typ.Type.Elem()).Elem()
-			if err = sub.prologue(new_value, typ.Type.Elem()); err != nil {
-				err = fmt.Errorf("cannot set sub-command: %v", err)
-				return
-			}
+				sub := &StrOpt{
+					Value:        value,
+					Tracer:       stropt.Tracer,
+					name:         name,
+					tag:          typ.Tag,
+					named_fields: map[string]Field{},
+				}
 
-			stropt.subs = append(stropt.subs, sub)
-			return
+				new_value := reflect.New(typ.Type.Elem()).Elem()
+				if err = sub.prologue(new_value, typ.Type.Elem()); err != nil {
+					err = fmt.Errorf("cannot set sub-command: %v", err)
+					return
+				}
+
+				err = stropt.setArgument(sub)
+			default:
+				if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
+					err = fmt.Errorf("new flag from %v: %v", value, err)
+					return
+				}
+				err = stropt.setArgument(field)
+			}
 		case reflect.Struct: // may embedded field
 			err = stropt.prologue(value, typ.Type)
 			return
@@ -268,14 +290,21 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 				err = fmt.Errorf("new flip from %v: %v", value, err)
 				return
 			}
+			err = stropt.setOption(field)
 		default: // may flag option
 			if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
 				err = fmt.Errorf("new flag from %v: %v", value, err)
 				return
 			}
+			err = stropt.setOption(field)
 		}
 	}
 
+	return
+}
+
+// set as the named (name/shortcut) options
+func (stropt *StrOpt) setOption(field Field) (err error) {
 	stropt.fields = append(stropt.fields, field)
 
 	// set named field
@@ -294,6 +323,12 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 		stropt.named_fields[shortcut] = field
 	}
 
+	return
+}
+
+// set as the arguments
+func (stropt *StrOpt) setArgument(field Field) (err error) {
+	stropt.subs = append(stropt.subs, field)
 	return
 }
 
