@@ -1,7 +1,9 @@
 package stropt
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 	"testing"
 )
 
@@ -42,8 +44,8 @@ type Foo struct {
 	Age    uint `shortcut:"a"`
 	Number int  `desc:"store integer"`
 	Name   string
-	Price  float64   `shortcut:"p" desc:"store float number"`
-	Point  complex64 `shortcut:"P"`
+	Price  float64    `shortcut:"p" desc:"store float number"`
+	Point  complex128 `shortcut:"P"`
 
 	// the embedded struct, should extend as the normal fields
 	Inner
@@ -125,4 +127,140 @@ func TestParseWithDoubleDash(t *testing.T) {
 	parser.Parse("--flip", "--", "--flip")           //nolint
 	parser.Parse("--flip", "--flip", "--", "--flip") //nolint
 	parser.Parse("-f", "-ff", "--", "-fff")          //nolint
+}
+
+func TestParseInt(t *testing.T) {
+	foo := &Foo{}
+	parser := MustNew(foo)
+
+	number := 123
+	if _, err := parser.Parse("--number", strconv.Itoa(number)); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v (%v)", err, strconv.Itoa(number))
+	} else if foo.Number != number {
+		// parse int fail
+		t.Errorf("parse int %v (%v): %v", number, strconv.Itoa(number), foo.Number)
+	}
+
+	number = -123
+	if _, err := parser.Parse("--number", strconv.Itoa(number)); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v", err)
+	} else if foo.Number != number {
+		// parse int fail
+		t.Errorf("parse int %v (%v): %v", number, strconv.Itoa(number), foo.Number)
+	}
+
+	invalid_number := "123a"
+	if _, err := parser.Parse("--number", invalid_number); err == nil {
+		// expect parse int fail
+		t.Errorf("parse %v without error", invalid_number)
+	}
+}
+
+func TestParseUint(t *testing.T) {
+	foo := &Foo{}
+	parser := MustNew(foo)
+
+	age := 123
+	if _, err := parser.Parse("--age", strconv.Itoa(age)); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v (%v)", err, strconv.Itoa(age))
+	} else if foo.Age != uint(age) {
+		// parse int fail
+		t.Errorf("parse int %v (%v): %v", age, strconv.Itoa(age), foo.Age)
+	}
+
+	age = -123
+	if _, err := parser.Parse("--age", strconv.Itoa(age)); err == nil {
+		// expect parse int fail
+		t.Errorf("parse %v without error", age)
+	}
+
+	invalid_age := "123a"
+	if _, err := parser.Parse("--age", invalid_age); err == nil {
+		// expect parse int fail
+		t.Errorf("parse %v without error", invalid_age)
+	}
+}
+
+func TestParseFloat(t *testing.T) {
+	foo := &Foo{}
+	parser := MustNew(foo)
+
+	price := 123.456
+	if _, err := parser.Parse("--price", fmt.Sprintf("%v", price)); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v (%v)", err, fmt.Sprintf("%v", price))
+	} else if foo.Price != price {
+		// parse int fail
+		t.Errorf("parse int %v (%v): %v", price, fmt.Sprintf("%v", price), foo.Price)
+	}
+
+	price = -123.456
+	if _, err := parser.Parse("--price", fmt.Sprintf("%v", price)); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v", err)
+	} else if foo.Price != price {
+		// parse int fail
+		t.Errorf("parse int %v (%v): %v", price, fmt.Sprintf("%v", price), foo.Price)
+	}
+
+	price = 0.5
+	if _, err := parser.Parse("--price", "1/2"); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v", err)
+	} else if foo.Price != price {
+		// parse int fail
+		t.Errorf("parse int %v (1/2): %v", price, foo.Price)
+	}
+
+	invalid_price := "123a"
+	if _, err := parser.Parse("--price", invalid_price); err == nil {
+		// expect parse int fail
+		t.Errorf("parse %v without error", invalid_price)
+	}
+}
+
+func TestParseComplex(t *testing.T) {
+	foo := &Foo{}
+	parser := MustNew(foo)
+
+	point := 1 + 2i
+	if _, err := parser.Parse("--point", fmt.Sprintf("%v", point)); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v (%v)", err, fmt.Sprintf("%v", point))
+	} else if foo.Point != point {
+		// parse int fail
+		t.Errorf("parse int %v (%v): %v", point, fmt.Sprintf("%v", point), foo.Point)
+	}
+
+	point = -2 - 5i
+	if _, err := parser.Parse("--point", fmt.Sprintf("%v", point)); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v", err)
+	} else if foo.Point != point {
+		// parse int fail
+		t.Errorf("parse int %v (%v): %v", point, fmt.Sprintf("%v", point), foo.Point)
+	}
+
+	invalid_point := "123a"
+	if _, err := parser.Parse("--point", invalid_point); err == nil {
+		// expect parse int fail
+		t.Errorf("parse %v without error", invalid_point)
+	}
+}
+
+func TestParseString(t *testing.T) {
+	foo := &Foo{}
+	parser := MustNew(foo)
+
+	name := "message/訊息/メッセージ"
+	if _, err := parser.Parse("--name", name); err != nil {
+		// cannot parse int
+		t.Errorf("cannot parse int: %v (%v)", err, name)
+	} else if foo.Name != name {
+		// parse int fail
+		t.Errorf("parse int %v : %v", name, foo.Name)
+	}
 }

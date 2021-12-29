@@ -15,7 +15,7 @@ run:			# run in the local environment
 
 build: 			# build the binary/library
 	gofmt -s -w . $(SRC)
-	go test -v ./...
+	go test ./...
 
 upgrade:		# upgrade all the necessary packages
 	pre-commit autoupdate
