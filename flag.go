@@ -48,7 +48,7 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 		return
 	}
 
-	switch kind := flag.StructField.Type.Kind(); kind {
+	switch kind := flag.Value.Type().Kind(); kind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		var v int
 

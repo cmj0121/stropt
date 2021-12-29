@@ -56,6 +56,7 @@ func New(in interface{}) (stropt *StrOpt, err error) {
 		named_fields: map[string]Field{},
 	}
 
+	stropt.Level(trace.TRACE)
 	stropt.Infof("new StrOpt: %[1]v (%[1]T)", in)
 	// pass the type of Struct (not the *Struct)
 	err = stropt.prologue(stropt.Value.Elem(), reflect.TypeOf(in).Elem())
@@ -180,7 +181,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 			}
 
 			field := stropt.subs[args_idx]
-			if nargs, err = stropt.parse(field, args...); err != nil {
+			if nargs, err = stropt.parse(field, args[idx:]...); err != nil {
 				err = fmt.Errorf("parse %v fail: %v", token, err)
 				return
 			}
@@ -188,6 +189,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 			// note the args already take-out the first argument, which
 			// counts when break the switch-statement
 			idx += nargs - 1
+			args_idx ++
 		}
 
 		idx++

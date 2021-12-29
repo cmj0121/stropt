@@ -50,6 +50,9 @@ type Foo struct {
 	// the embedded struct, should extend as the normal fields
 	Inner
 
+	// arguments
+	Message *string `desc:"store string as position field"`
+
 	// the sub-command
 	*Sub `name:"subc"`
 }
@@ -75,6 +78,7 @@ func Example() {
 	//         --inner-x          the inner field
 	//
 	// arguments:
+	//         message            store string as position field
 	//         subc
 }
 

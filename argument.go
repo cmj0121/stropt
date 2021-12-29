@@ -12,30 +12,43 @@ type Argument struct {
 	// same as the Argument, but pass the shadow value to Argument
 	*Flag
 
+	reflect.Value
+
 	// the shadow of the value, create and copy to original value
 	shadow reflect.Value
 }
 
-func NewArgument(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (args *Argument, err error) {
+func NewArgument(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (arg *Argument, err error) {
 	if !(value.Kind() == reflect.Ptr && typ.Type.Kind() == reflect.Ptr) {
 		err = fmt.Errorf("%T cannot be the args: %v", value.Interface(), value.Kind())
 		return
 	}
 
 	shadow := reflect.New(typ.Type.Elem())
-	args = &Argument{
+	arg = &Argument{
+		Value: value,
 		shadow: shadow,
 	}
-	args.Flag, err = NewFlag(tracer, shadow.Elem(), typ)
+	arg.Flag, err = NewFlag(tracer, shadow.Elem(), typ)
+
+	return
+}
+
+// parse the pass argument, should consumed one and only one argument
+func (arg *Argument) Parse(args ...string) (n int, err error) {
+	if n, err = arg.Flag.Parse(args...); err == nil {
+		// copy the shadow to current value
+		arg.Value.Set(arg.shadow)
+	}
 
 	return
 }
 
 // return the original name of the field
-func (args *Argument) GetName() (name string) {
-	name = strings.ToLower(args.StructField.Name)
+func (arg *Argument) GetName() (name string) {
+	name = strings.ToLower(arg.StructField.Name)
 
-	if value, ok := args.StructField.Tag.Lookup(KEY_NAME); ok {
+	if value, ok := arg.StructField.Tag.Lookup(KEY_NAME); ok {
 		// override the field's name
 		name = strings.ToLower(value)
 	}
@@ -44,6 +57,6 @@ func (args *Argument) GetName() (name string) {
 }
 
 // arguments does not has shortcut, just return
-func (args *Argument) GetShortcut() (shortcut string) {
+func (arg *Argument) GetShortcut() (shortcut string) {
 	return
 }
