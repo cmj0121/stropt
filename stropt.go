@@ -135,18 +135,18 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 		case token == "--":
 			no_option = true
 			stropt.Infof("explicit claims no options remains")
-		case !no_option && token[:2] == "--":
+		case !no_option && len(token) > 2 && token[:2] == "--":
 			field, ok := stropt.named_fields[token[2:]]
 			if !ok {
 				err = fmt.Errorf("option %v not found", token)
 				return
 			} else if nargs, err = stropt.parse(field, args[idx+1:]...); err != nil {
-				err = fmt.Errorf("parse %v: %v", token, err)
+				err = fmt.Errorf("parse %v fail: %v", token, err)
 				return
 			}
 
 			idx += nargs
-		case !no_option && token[:1] == "-":
+		case !no_option && len(token) > 1 && token[:1] == "-":
 			switch len(token) {
 			case 2:
 				// single shortcut
@@ -155,7 +155,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 					err = fmt.Errorf("option %v not found", token)
 					return
 				} else if nargs, err = stropt.parse(field, args[idx+1:]...); err != nil {
-					err = fmt.Errorf("parse %v: %v", token, err)
+					err = fmt.Errorf("parse %v fail: %v", token, err)
 					return
 				}
 
@@ -168,12 +168,14 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 						err = fmt.Errorf("option -%v not found", token)
 						return
 					} else if _, err = stropt.parse(field); err != nil {
-						err = fmt.Errorf("parse -%v: %v", shortcut, err)
+						err = fmt.Errorf("parse -%v fail: %v", shortcut, err)
 						return
 					}
 				}
 			}
 		default:
+			err = fmt.Errorf("unknown option/argument: %v", token)
+			return
 		}
 
 		idx++
@@ -183,9 +185,12 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 }
 
 // parse from the command-line arguments
-func (stropt *StrOpt) Run() (err error) {
-	_, err = stropt.Parse(os.Args[1:]...)
-	return
+func (stropt *StrOpt) Run() {
+	if _, err := stropt.Parse(os.Args[1:]...); err != nil {
+		os.Stderr.WriteString(fmt.Sprintf("error: %v\n", err))
+		stropt.Usage(os.Stderr)
+		os.Exit(1)
+	}
 }
 
 func (stropt *StrOpt) parse(field Field, args ...string) (n int, err error) {
