@@ -210,15 +210,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 	return
 }
 
-// parse from the command-line arguments
-func (stropt *StrOpt) Run() {
-	if _, err := stropt.Parse(os.Args[1:]...); err != nil {
-		os.Stderr.WriteString(fmt.Sprintf("error: %v\n", err))
-		stropt.Usage(os.Stderr)
-		os.Exit(1)
-	}
-}
-
+// the helper utility for parse the arguments and trigger callback with specified field
 func (stropt *StrOpt) parse(field Field, args ...string) (n int, err error) {
 	if n, err = field.Parse(args...); err == nil {
 		if name, ok := field.GetTag().Lookup(KEY_CALLBACK); ok {
@@ -228,6 +220,15 @@ func (stropt *StrOpt) parse(field Field, args ...string) (n int, err error) {
 	}
 
 	return
+}
+
+// parse from the command-line arguments
+func (stropt *StrOpt) Run() {
+	if _, err := stropt.Parse(os.Args[1:]...); err != nil {
+		os.Stderr.WriteString(fmt.Sprintf("error: %v\n", err))
+		stropt.Usage(os.Stderr)
+		os.Exit(1)
+	}
 }
 
 // parse the pass Struct into fields
