@@ -16,6 +16,9 @@ import (
 type StrOpt struct {
 	reflect.Value
 
+	// the shadow of the value, create and copy to original value
+	shadow reflect.Value
+
 	// the log sub-system
 	*trace.Tracer
 
@@ -136,6 +139,12 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 // parse the input arguments and fill the *Struct, return error when failure.
 func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 	stropt.Tracef("start parse: %v", args)
+	defer func() {
+		if stropt.shadow.IsValid() && !stropt.shadow.IsZero() {
+			// copy the shadow value to current value
+			stropt.Value.Set(stropt.shadow)
+		}
+	}()
 
 	no_option := false
 	idx := 0
@@ -190,12 +199,12 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 			switch field, ok := stropt.sub_fields[token]; ok {
 			case true:
 				// sub-command
-				if nargs, err = stropt.parse(field, args[idx+1:]...); err != nil {
+				if _, err = stropt.parse(field, args[idx+1:]...); err != nil {
 					err = fmt.Errorf("parse %v fail: %v", token, err)
 					return
 				}
 
-				idx += nargs - 1
+				return
 			case false:
 				// position field
 				if stropt.args_idx >= len(stropt.args_fields) {
@@ -225,6 +234,7 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 
 // the helper utility for parse the arguments and trigger callback with specified field
 func (stropt *StrOpt) parse(field Field, args ...string) (n int, err error) {
+	stropt.Debugf("parse %v on %v", args, field)
 	if n, err = field.Parse(args...); err == nil {
 		if name, ok := field.GetTag().Lookup(KEY_CALLBACK); ok {
 			// call the callback function
@@ -288,16 +298,18 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 					name = strings.ToLower(value)
 				}
 
+				shadow := reflect.New(typ.Type.Elem())
+
 				sub := &StrOpt{
 					Value:        value,
+					shadow:       shadow,
 					Tracer:       stropt.Tracer,
 					name:         name,
 					tag:          typ.Tag,
 					named_fields: map[string]Field{},
 				}
 
-				new_value := reflect.New(typ.Type.Elem()).Elem()
-				if err = sub.prologue(new_value, typ.Type.Elem()); err != nil {
+				if err = sub.prologue(shadow.Elem(), typ.Type.Elem()); err != nil {
 					err = fmt.Errorf("cannot set sub-command: %v", err)
 					return
 				}
