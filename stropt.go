@@ -187,21 +187,34 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 				}
 			}
 		default:
-			if stropt.args_idx >= len(stropt.args_fields) {
-				err = fmt.Errorf("unknown argument: %v", token)
-				return
-			}
+			switch field, ok := stropt.sub_fields[token]; ok {
+			case true:
+				// sub-command
+				if nargs, err = stropt.parse(field, args[idx+1:]...); err != nil {
+					err = fmt.Errorf("parse %v fail: %v", token, err)
+					return
+				}
 
-			field := stropt.args_fields[stropt.args_idx]
-			if nargs, err = stropt.parse(field, args[idx:]...); err != nil {
-				err = fmt.Errorf("parse %v fail: %v", token, err)
-				return
+				idx += nargs - 1
+			case false:
+				// position field
+				if stropt.args_idx >= len(stropt.args_fields) {
+					err = fmt.Errorf("unknown argument: %v", token)
+					return
+				}
+
+				field = stropt.args_fields[stropt.args_idx]
+				if nargs, err = stropt.parse(field, args[idx:]...); err != nil {
+					err = fmt.Errorf("parse %v fail: %v", token, err)
+					return
+				}
+
+				stropt.args_idx++
 			}
 
 			// note the args already take-out the first argument, which
 			// counts when break the switch-statement
 			idx += nargs - 1
-			stropt.args_idx++
 		}
 
 		idx++
