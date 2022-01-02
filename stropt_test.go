@@ -41,9 +41,9 @@ type Foo struct {
 	Flip2 bool `shortcut:"f" name:"flip-2"`
 
 	// the argument
-	Age    uint `shortcut:"a"`
-	Number int  `desc:"store integer"`
-	Name   string
+	Age    uint       `shortcut:"a" default:"21" desc:"age"`
+	Number int        `desc:"store integer"`
+	Name   string     `default:"mock-name" desc:"name"`
 	Price  float64    `shortcut:"p" desc:"store float number"`
 	Point  complex128 `shortcut:"P"`
 
@@ -59,7 +59,9 @@ type Foo struct {
 }
 
 func Example() {
-	foo := Foo{}
+	foo := Foo{
+		Price: 12.34,
+	}
 	parser := MustNew(&foo)
 
 	parser.Usage(os.Stdout)
@@ -71,10 +73,10 @@ func Example() {
 	//      -v --version          show the version and exit
 	//         --flip             store true/false field
 	//      -f --flip-2
-	//      -a --age
+	//      -a --age              age [default 21]
 	//         --number           store integer
-	//         --name
-	//      -p --price            store float number
+	//         --name             name [default mock-name]
+	//      -p --price            store float number [default 12.34]
 	//      -P --point
 	//         --inner-x          the inner field
 	//
