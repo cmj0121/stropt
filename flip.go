@@ -77,3 +77,8 @@ func (flip *Flip) GetShortcut() (shortcut string) {
 
 	return
 }
+
+// the default value
+func (flip *Flip) Default() (_default string) {
+	return
+}

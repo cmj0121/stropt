@@ -363,12 +363,22 @@ func (stropt *StrOpt) setOption(field Field) (err error) {
 		stropt.named_fields[shortcut] = field
 	}
 
+	if _default, ok := field.GetTag().Lookup(KEY_DEFAULT); ok {
+		// set the default value before parse
+		_, err = field.Parse(_default)
+	}
+
 	return
 }
 
 // set as the arguments
 func (stropt *StrOpt) setArgument(field Field) (err error) {
 	stropt.args_fields = append(stropt.args_fields, field)
+
+	if _default, ok := field.GetTag().Lookup(KEY_DEFAULT); ok {
+		// set the default value before parse
+		_, err = field.Parse(_default)
+	}
 	return
 }
 
@@ -403,7 +413,14 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 	help, _ := field.GetTag().Lookup(KEY_DESC)
 
 	desc = fmt.Sprintf("%3v %v", shortcut, name)
-	desc = strings.TrimRight(fmt.Sprintf("    %-22v %v", desc, help), " ")
+	switch _default := field.Default(); _default {
+	case "":
+		desc = fmt.Sprintf("    %-22v %v", desc, help)
+	default:
+		desc = fmt.Sprintf("    %-22v %v [default %v]", desc, help, _default)
+	}
+
+	desc = strings.TrimRight(desc, " ")
 	return
 }
 

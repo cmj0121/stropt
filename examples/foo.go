@@ -27,8 +27,8 @@ type Foo struct {
 	Flip bool `shortcut:"f" desc:"store true/false value"`
 
 	Number  int     `shortcut:"n" desc:"store integer"`
-	Age     uint    `shortcut:"a" desc:"store unsigned integer"`
-	Price   float64 `shortcut:"p" desc:"store float number, may rational number"`
+	Age     uint    `shortcut:"a" default:"21" desc:"store unsigned integer"`
+	Price   float64 `shortcut:"p" default:"12.34" desc:"store float number, may rational number"`
 	Message string  `shortcut:"m" desc:"store the raw string"`
 
 	Name   *string `desc:"save name as argument"`

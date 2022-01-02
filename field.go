@@ -16,4 +16,7 @@ type Field interface {
 	GetShortcut() string
 	// the customized tag of the field
 	GetTag() reflect.StructTag
+
+	// the default value
+	Default() string
 }

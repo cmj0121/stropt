@@ -155,3 +155,13 @@ func (flag *Flag) Hint() (hint string) {
 
 	return
 }
+
+// the default value
+func (flag *Flag) Default() (_default string) {
+	if !flag.Value.IsZero() {
+		// set the default value
+		_default = fmt.Sprintf("%v", flag.Value)
+	}
+
+	return
+}

@@ -60,3 +60,13 @@ func (arg *Argument) GetName() (name string) {
 func (arg *Argument) GetShortcut() (shortcut string) {
 	return
 }
+
+// the default value
+func (arg *Argument) Default() (_default string) {
+	if !arg.Value.IsZero() {
+		// set the default value
+		_default = fmt.Sprintf("%v", arg.Value.Elem())
+	}
+
+	return
+}

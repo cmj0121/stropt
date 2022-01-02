@@ -19,6 +19,8 @@ var (
 	KEY_DESC = "desc"
 	// the callback function, may local or global
 	KEY_CALLBACK = "callback"
+	// the default value
+	KEY_DEFAULT = "default"
 )
 
 // pre-defined tag used in stropt

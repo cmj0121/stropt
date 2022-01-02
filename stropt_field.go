@@ -21,3 +21,8 @@ func (stropt *StrOpt) GetShortcut() (shortcut string) {
 	// sub-command does not contains shortcut
 	return
 }
+
+// the default value
+func (stropt *StrOpt) Default() (def string) {
+	return
+}
