@@ -34,7 +34,8 @@ type Foo struct {
 	Name   *string `desc:"save name as argument"`
 	Amount *int    `desc:"save int as argument"`
 
-	*Sub `json:"sub" desc:"sub-command"`
+	Sub1 *Sub `json:"sub-1" desc:"sub-command"`
+	Sub2 *Sub `json:"sub-2" desc:"sub-command"`
 }
 
 func main() {
@@ -43,7 +44,7 @@ func main() {
 	foo := Foo{
 		Name: &name,
 
-		Sub: &Sub{
+		Sub1: &Sub{
 			Age: 123,
 		},
 	}
