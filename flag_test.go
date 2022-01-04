@@ -106,3 +106,30 @@ func TestParseIP(t *testing.T) {
 		t.Errorf("expect --ip1 0.0.0.0: %v", foo.IP2)
 	}
 }
+
+func TestParseCIDR(t *testing.T) {
+	foo := struct {
+		IP1 *net.IPNet `attr:"flag"`
+		IP2 *net.IPNet
+	}{
+		IP1: nil,
+		IP2: nil,
+	}
+
+	parser := MustNew(&foo)
+	if _, err := parser.Parse("--ip1", "127.0.0.2/16"); err != nil {
+		// parse the flag failure
+		t.Fatalf("cannot parse flag: %v", err)
+	} else if foo.IP1.String() != "127.0.0.0/16" {
+		// parse but get wrong value
+		t.Errorf("expect --ip1 127.0.0.2/16: %v", foo.IP1)
+	}
+
+	if _, err := parser.Parse("0.0.0.0/0"); err != nil {
+		// parse the flag failure
+		t.Fatalf("cannot parse flag: %v", err)
+	} else if foo.IP2.String() != "0.0.0.0/0" {
+		// parse but get wrong value
+		t.Errorf("expect --ip1 0.0.0.0/0: %v", foo.IP2)
+	}
+}
