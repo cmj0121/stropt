@@ -33,6 +33,7 @@ func TestParseTime(t *testing.T) {
 		t.Errorf("expect --d2 %v: %v", time_str, *foo.D2)
 	}
 }
+
 func TestParseTimeDuration(t *testing.T) {
 	foo := struct {
 		D1 time.Duration

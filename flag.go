@@ -3,6 +3,7 @@ package stropt
 import (
 	"fmt"
 	"math/big"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -31,7 +32,9 @@ func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField)
 	case reflect.String:
 	default:
 		switch value.Interface().(type) {
+		case time.Duration, *time.Duration:
 		case time.Time, *time.Time:
+		case *os.File:
 		default:
 			err = fmt.Errorf("%T cannot be the flag: %v", value.Interface(), kind)
 		}
@@ -59,7 +62,6 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 		var duration time.Duration
 
 		if duration, err = time.ParseDuration(args[0]); err == nil {
-			// can parse the time.Duration, set the value
 			flag.setValue(reflect.ValueOf(&duration))
 			n++
 			return
@@ -68,11 +70,24 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 		var timestamp time.Time
 
 		if timestamp, err = time.Parse(time.RFC3339, args[0]); err == nil {
-			// can parse the time.Duration, set the value
 			flag.setValue(reflect.ValueOf(&timestamp))
 			n++
 			return
 		}
+
+		err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
+		return
+	case *os.File:
+		var file *os.File
+
+		if file, err = os.Open(args[0]); err == nil {
+			flag.setValue(reflect.ValueOf(file))
+			n++
+			return
+		}
+
+		err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
+		return
 	}
 
 	switch kind := flag.Value.Type().Kind(); kind {
@@ -189,6 +204,8 @@ func (flag *Flag) Hint() (hint string) {
 		switch flag.Value.Interface().(type) {
 		case time.Duration, *time.Duration:
 			hint = "DURATION"
+		case os.File, *os.File:
+			hint = "FILE"
 		default:
 			hint = "ARGS"
 		}

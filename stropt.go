@@ -295,7 +295,7 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 			}
 			err = stropt.setOption(field)
 			return
-		case *time.Time:
+		case *time.Time, *os.File:
 			if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
 				err = fmt.Errorf("new flag from %v: %v", value, err)
 				return
