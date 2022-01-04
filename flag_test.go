@@ -1,6 +1,7 @@
 package stropt
 
 import (
+	"net"
 	"testing"
 	"time"
 )
@@ -68,5 +69,40 @@ func TestParseTimeDuration(t *testing.T) {
 	} else if *foo.D2 != duration {
 		// parse but get wrong value
 		t.Errorf("expect --d2 %v: %v", duration, foo.D2)
+	}
+}
+
+func TestParseIP(t *testing.T) {
+	foo := struct {
+		IP1 net.IP
+		IP2 *net.IP
+	}{
+		IP1: nil,
+		IP2: nil,
+	}
+
+	parser := MustNew(&foo)
+	if _, err := parser.Parse("--ip1", "127.0.0.2"); err != nil {
+		// parse the flag failure
+		t.Fatalf("cannot parse flag: %v", err)
+	} else if foo.IP1.String() != "127.0.0.2" {
+		// parse but get wrong value
+		t.Errorf("expect --ip1 127.0.0.2: %v", foo.IP1)
+	}
+
+	if _, err := parser.Parse("--ip1", "localhost"); err != nil {
+		// parse the flag failure
+		t.Fatalf("cannot parse flag: %v", err)
+	} else if !foo.IP1.IsLoopback() {
+		// parse but get wrong value
+		t.Errorf("expect --ip1 localhost: %v", foo.IP1)
+	}
+
+	if _, err := parser.Parse("0.0.0.0"); err != nil {
+		// parse the flag failure
+		t.Fatalf("cannot parse flag: %v", err)
+	} else if foo.IP2.String() != "0.0.0.0" {
+		// parse but get wrong value
+		t.Errorf("expect --ip1 0.0.0.0: %v", foo.IP2)
 	}
 }

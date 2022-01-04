@@ -3,6 +3,7 @@ package stropt
 import (
 	"fmt"
 	"math/big"
+	"net"
 	"os"
 	"reflect"
 	"strconv"
@@ -35,6 +36,7 @@ func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField)
 		case time.Duration, *time.Duration:
 		case time.Time, *time.Time:
 		case *os.File:
+		case net.IP, *net.IP:
 		default:
 			err = fmt.Errorf("%T cannot be the flag: %v", value.Interface(), kind)
 		}
@@ -82,6 +84,24 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 
 		if file, err = os.Open(args[0]); err == nil {
 			flag.setValue(reflect.ValueOf(file))
+			n++
+			return
+		}
+
+		err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
+		return
+	case net.IP, *net.IP:
+		var ip net.IP
+
+		if ip = net.ParseIP(args[0]); ip == nil {
+			ips, err := net.LookupIP(args[0])
+			if err == nil && len(ips) > 0 {
+				ip = ips[0]
+			}
+		}
+
+		if ip != nil {
+			flag.setValue(reflect.ValueOf(&ip))
 			n++
 			return
 		}
@@ -206,6 +226,8 @@ func (flag *Flag) Hint() (hint string) {
 			hint = "DURATION"
 		case os.File, *os.File:
 			hint = "FILE"
+		case net.IP, *net.IP:
+			hint = "IP"
 		default:
 			hint = "ARGS"
 		}

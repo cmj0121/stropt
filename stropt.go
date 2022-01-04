@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"reflect"
 	"sort"
@@ -301,14 +302,14 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 
 		// specified case
 		switch value.Interface().(type) {
-		case time.Time:
+		case time.Time, net.IP:
 			if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
 				err = fmt.Errorf("new flag from %v: %v", value, err)
 				return
 			}
 			err = stropt.setOption(field)
 			return
-		case *time.Time, *os.File:
+		case *time.Time, *os.File, *net.IP:
 			switch force_as_flag {
 			case true:
 				if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
