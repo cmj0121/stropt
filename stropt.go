@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -276,6 +277,18 @@ func (stropt *StrOpt) prologue(value reflect.Value, typ reflect.Type) (err error
 func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (err error) {
 	var field Field
 
+	force_as_flag := false
+	if v, ok := typ.Tag.Lookup(KEY_ATTR); ok {
+		attrs := strings.Split(v, " \t")
+		sort.Strings(attrs)
+
+		idx := sort.SearchStrings(attrs, KEY_ATTR_FLAG)
+		if idx >= 0 && idx < len(attrs) && attrs[idx] == KEY_ATTR_FLAG {
+			stropt.Infof("attribute: %v", KEY_ATTR_FLAG)
+			force_as_flag = true
+		}
+	}
+
 	switch {
 	case !value.CanSet():
 		stropt.Debugf("field #%v cannot be set, skip", value)
@@ -296,11 +309,20 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 			err = stropt.setOption(field)
 			return
 		case *time.Time, *os.File:
-			if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
-				err = fmt.Errorf("new flag from %v: %v", value, err)
-				return
+			switch force_as_flag {
+			case true:
+				if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
+					err = fmt.Errorf("new flag from %v: %v", value, err)
+					return
+				}
+				err = stropt.setOption(field)
+			case false:
+				if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
+					err = fmt.Errorf("new flag from %v: %v", value, err)
+					return
+				}
+				err = stropt.setArgument(field)
 			}
-			err = stropt.setArgument(field)
 			return
 		}
 
@@ -334,6 +356,12 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 				}
 
 				err = stropt.setSub(sub)
+			case force_as_flag:
+				if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
+					err = fmt.Errorf("new flag from %v: %v", value, err)
+					return
+				}
+				err = stropt.setOption(field)
 			default:
 				if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
 					err = fmt.Errorf("new flag from %v: %v", value, err)

@@ -21,6 +21,10 @@ var (
 	KEY_CALLBACK = "callback"
 	// the default value
 	KEY_DEFAULT = "default"
+
+	// the attribute of field
+	KEY_ATTR      = "attr"
+	KEY_ATTR_FLAG = "flag"
 )
 
 // pre-defined tag used in stropt
