@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/cmj0121/trace"
 )
@@ -284,6 +285,24 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (er
 		return
 	default:
 		stropt.Debugf("set field %v (%v)", value, typ.Type.Kind())
+
+		// specified case
+		switch value.Interface().(type) {
+		case time.Time:
+			if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
+				err = fmt.Errorf("new flag from %v: %v", value, err)
+				return
+			}
+			err = stropt.setOption(field)
+			return
+		case *time.Time:
+			if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
+				err = fmt.Errorf("new flag from %v: %v", value, err)
+				return
+			}
+			err = stropt.setArgument(field)
+			return
+		}
 
 		switch typ.Type.Kind() {
 		case reflect.Ptr: // argument or sub-command

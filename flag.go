@@ -30,7 +30,11 @@ func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField)
 	case reflect.Complex64, reflect.Complex128:
 	case reflect.String:
 	default:
-		err = fmt.Errorf("%T cannot be the flag: %v", value.Interface(), kind)
+		switch value.Interface().(type) {
+		case time.Time, *time.Time:
+		default:
+			err = fmt.Errorf("%T cannot be the flag: %v", value.Interface(), kind)
+		}
 	}
 
 	flag = &Flag{
@@ -56,7 +60,16 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 
 		if duration, err = time.ParseDuration(args[0]); err == nil {
 			// can parse the time.Duration, set the value
-			flag.setValue(duration)
+			flag.setValue(reflect.ValueOf(&duration))
+			n++
+			return
+		}
+	case time.Time, *time.Time:
+		var timestamp time.Time
+
+		if timestamp, err = time.Parse(time.RFC3339, args[0]); err == nil {
+			// can parse the time.Duration, set the value
+			flag.setValue(reflect.ValueOf(&timestamp))
 			n++
 			return
 		}
@@ -114,12 +127,12 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 	return
 }
 
-func (flag *Flag) setValue(value interface{}) {
+func (flag *Flag) setValue(value reflect.Value) {
 	switch flag.Value.Kind() {
 	case reflect.Ptr:
-		flag.Value.Set(reflect.ValueOf(&value))
+		flag.Value.Set(value)
 	default:
-		flag.Value.Set(reflect.ValueOf(value))
+		flag.Value.Set(value.Elem())
 	}
 }
 
