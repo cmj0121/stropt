@@ -26,16 +26,12 @@ type Foo struct {
 
 	Flip bool `shortcut:"f" desc:"store true/false value"`
 
-	Number  int     `shortcut:"n" desc:"store integer"`
-	Age     uint    `shortcut:"a" default:"21" desc:"store unsigned integer"`
-	Price   float64 `shortcut:"p" default:"12.34" desc:"store float number, may rational number"`
-	Message string  `shortcut:"m" desc:"store the raw string"`
+	Number int  `shortcut:"n" desc:"store integer"`
+	Age    uint `shortcut:"a" default:"21" desc:"store unsigned integer"`
 
-	Name   *string `desc:"save name as argument"`
-	Amount *int    `desc:"save int as argument"`
+	Name *string `desc:"save name as argument"`
 
-	Sub1 *Sub `json:"sub-1" desc:"sub-command"`
-	Sub2 *Sub `json:"sub-2" desc:"sub-command"`
+	*Sub `json:"sub-1" desc:"sub-command"`
 }
 
 func main() {
@@ -44,7 +40,7 @@ func main() {
 	foo := Foo{
 		Name: &name,
 
-		Sub1: &Sub{
+		Sub: &Sub{
 			Age: 123,
 		},
 	}
