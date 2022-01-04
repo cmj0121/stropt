@@ -38,6 +38,7 @@ func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField)
 		case *os.File:
 		case net.IP, *net.IP:
 		case net.IPNet, *net.IPNet:
+		case net.Interface, *net.Interface:
 		default:
 			err = fmt.Errorf("%T cannot be the flag: %v", value.Interface(), kind)
 		}
@@ -116,6 +117,17 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 
 		if inet != nil {
 			flag.setValue(reflect.ValueOf(inet))
+			n++
+			return
+		}
+
+		err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
+		return
+	case net.Interface, *net.Interface:
+		var iface *net.Interface
+
+		if iface, err = net.InterfaceByName(args[0]); err == nil {
+			flag.setValue(reflect.ValueOf(iface))
 			n++
 			return
 		}
@@ -244,6 +256,8 @@ func (flag *Flag) Hint() (hint string) {
 			hint = "IP"
 		case net.IPNet, *net.IPNet:
 			hint = "CIDR"
+		case net.Interface, *net.Interface:
+			hint = "IFACE"
 		default:
 			hint = "ARGS"
 		}
