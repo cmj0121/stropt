@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cmj0121/trace"
 )
@@ -46,6 +47,19 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 	if len(args) == 0 {
 		err = fmt.Errorf("should pass %v", flag.Hint())
 		return
+	}
+
+	// the special case
+	switch flag.Value.Interface().(type) {
+	case time.Duration, *time.Duration:
+		var duration time.Duration
+
+		if duration, err = time.ParseDuration(args[0]); err == nil {
+			// can parse the time.Duration, set the value
+			flag.setValue(duration)
+			n++
+			return
+		}
 	}
 
 	switch kind := flag.Value.Type().Kind(); kind {
@@ -100,6 +114,15 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 	return
 }
 
+func (flag *Flag) setValue(value interface{}) {
+	switch flag.Value.Kind() {
+	case reflect.Ptr:
+		flag.Value.Set(reflect.ValueOf(&value))
+	default:
+		flag.Value.Set(reflect.ValueOf(value))
+	}
+}
+
 // return the Tag of the field
 func (flag *Flag) GetTag() (tag reflect.StructTag) {
 	tag = flag.StructField.Tag
@@ -150,7 +173,12 @@ func (flag *Flag) Hint() (hint string) {
 	case reflect.String:
 		hint = "STR"
 	default:
-		hint = "ARGS"
+		switch flag.Value.Interface().(type) {
+		case time.Duration, *time.Duration:
+			hint = "DURATION"
+		default:
+			hint = "ARGS"
+		}
 	}
 
 	return
