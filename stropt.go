@@ -478,7 +478,7 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 	case "":
 		desc = fmt.Sprintf("    %-22v %v", desc, help)
 	default:
-		desc = fmt.Sprintf("    %-22v %v [default %v]", desc, help, _default)
+		desc = fmt.Sprintf("    %-22v %v [default: %v]", desc, help, _default)
 	}
 
 	desc = strings.TrimRight(desc, " ")
