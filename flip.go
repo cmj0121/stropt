@@ -78,6 +78,17 @@ func (flip *Flip) GetShortcut() (shortcut string) {
 	return
 }
 
+// set the choise value
+func (flip *Flip) SetChoice(choise []string) (err error) {
+	err = fmt.Errorf("flip should not set choise")
+	return
+}
+
+// get the choice
+func (flip *Flip) GetChoice() (choise []string) {
+	return
+}
+
 // the default value
 func (flip *Flip) Default() (_default string) {
 	return

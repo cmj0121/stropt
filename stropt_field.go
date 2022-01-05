@@ -1,6 +1,7 @@
 package stropt
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -19,6 +20,17 @@ func (stropt *StrOpt) GetName() (name string) {
 // return the shortcut of the field
 func (stropt *StrOpt) GetShortcut() (shortcut string) {
 	// sub-command does not contains shortcut
+	return
+}
+
+// set the choise value
+func (stropt *StrOpt) SetChoice(choise []string) (err error) {
+	err = fmt.Errorf("sub-command should not set choise")
+	return
+}
+
+// get the choice
+func (stropt *StrOpt) GetChoice() (choise []string) {
 	return
 }
 

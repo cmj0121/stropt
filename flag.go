@@ -22,6 +22,9 @@ type Flag struct {
 
 	// the field of the struct
 	reflect.StructField
+
+	// the possible and valid value can be set
+	choise []string
 }
 
 func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (flag *Flag, err error) {
@@ -263,6 +266,18 @@ func (flag *Flag) Hint() (hint string) {
 		}
 	}
 
+	return
+}
+
+// set the choise value
+func (flag *Flag) SetChoice(choise []string) (err error) {
+	flag.choise = append(flag.choise, choise...)
+	return
+}
+
+// get the choice
+func (flag *Flag) GetChoice() (choise []string) {
+	choise = append(choise, flag.choise...)
 	return
 }
 

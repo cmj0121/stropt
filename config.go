@@ -19,6 +19,8 @@ var (
 	KEY_DESC = "desc"
 	// the callback function, may local or global
 	KEY_CALLBACK = "callback"
+	// the pre-defined choice of the input
+	KEY_CHOICE = "choice"
 	// the default value
 	KEY_DEFAULT = "default"
 

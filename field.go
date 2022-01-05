@@ -17,6 +17,11 @@ type Field interface {
 	// the customized tag of the field
 	GetTag() reflect.StructTag
 
+	// set the choice
+	SetChoice(choice []string) error
+	// get the choice
+	GetChoice() []string
+
 	// the default value
 	Default() string
 }

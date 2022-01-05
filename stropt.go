@@ -265,19 +265,26 @@ func (stropt *StrOpt) prologue(value reflect.Value, typ reflect.Type) (err error
 		field_type := typ.Field(idx)
 		field_value := value.Field(idx)
 
+		var field Field
 		stropt.Tracef("process #%d field: %v (%v, %v)", idx, field_value, field_type, field_type.Tag)
-		if err = stropt.setField(field_value, field_type); err != nil {
+		if field, err = stropt.setField(field_value, field_type); err != nil {
 			err = fmt.Errorf("set #%v field: %v", idx, err)
 			return
+		}
+
+		if value, ok := field_type.Tag.Lookup(KEY_CHOICE); ok {
+			choice := strings.Split(value, " \t")
+			if err = field.SetChoice(choice); err != nil {
+				err = fmt.Errorf("set #%v field: %v", idx, err)
+				return
+			}
 		}
 	}
 	return
 }
 
 // set the pass reflect.Value and reflect.StructField to Field
-func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (err error) {
-	var field Field
-
+func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (field Field, err error) {
 	force_as_flag := false
 	if v, ok := typ.Tag.Lookup(KEY_ATTR); ok {
 		attrs := strings.Split(v, " \t")
@@ -459,6 +466,12 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 
 	// the helper description of the field
 	help, _ := field.GetTag().Lookup(KEY_DESC)
+
+	choice := field.GetChoice()
+	if len(choice) > 0 {
+		// append the choice
+		help = fmt.Sprintf("%v [%v]", help, strings.Join(choice, " "))
+	}
 
 	desc = fmt.Sprintf("%3v %v", shortcut, name)
 	switch _default := field.Default(); _default {
