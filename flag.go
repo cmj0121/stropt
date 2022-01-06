@@ -28,25 +28,6 @@ type Flag struct {
 }
 
 func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (flag *Flag, err error) {
-	switch kind := value.Kind(); kind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-	case reflect.Float32, reflect.Float64:
-	case reflect.Complex64, reflect.Complex128:
-	case reflect.String:
-	default:
-		switch value.Interface().(type) {
-		case time.Duration, *time.Duration:
-		case time.Time, *time.Time:
-		case *os.File:
-		case net.IP, *net.IP:
-		case net.IPNet, *net.IPNet:
-		case net.Interface, *net.Interface:
-		default:
-			err = fmt.Errorf("%T cannot be the flag: %v", value.Interface(), kind)
-		}
-	}
-
 	flag = &Flag{
 		Tracer:      tracer,
 		Value:       value,
@@ -155,55 +136,71 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 		return
 	}
 
-	switch kind := flag.Value.Type().Kind(); kind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		var v int
-
-		if v, err = strconv.Atoi(args[0]); err != nil {
-			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
-			return
-		}
-
-		flag.Value.SetInt(int64(v))
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		var v int
-
-		if v, err = strconv.Atoi(args[0]); err != nil {
-			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
-			return
-		} else if v < 0 {
-			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
-			return
-		}
-
-		flag.Value.SetUint(uint64(v))
-	case reflect.Float32, reflect.Float64:
-		rat := &big.Rat{}
-		if _, ok := rat.SetString(args[0]); !ok {
-			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
-			return
-		}
-
-		float, exact := rat.Float64()
-		flag.Infof("convert %v to %v (exact: %v)", args[0], float, exact)
-		flag.Value.SetFloat(float)
-	case reflect.Complex64, reflect.Complex128:
-		var cplx complex128
-
-		if cplx, err = strconv.ParseComplex(args[0], 128); err != nil {
-			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
-			return
-		}
-		flag.Value.SetComplex(cplx)
-	case reflect.String:
-		// copy the argument to string
-		flag.Value.SetString(args[0])
-	default:
-		err = fmt.Errorf("not support parse %v: %v", kind, flag.Value)
+	if err = flag.parse(flag.Value, args[0]); err != nil {
+		// cannot parse the built-in type
 		return
 	}
 
 	n++
+	return
+}
+
+func (flag *Flag) parse(value reflect.Value, args string) (err error) {
+	switch kind := value.Type().Kind(); kind {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		var v int
+
+		if v, err = strconv.Atoi(args); err != nil {
+			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args)
+			return
+		}
+
+		value.SetInt(int64(v))
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		var v int
+
+		if v, err = strconv.Atoi(args); err != nil {
+			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args)
+			return
+		} else if v < 0 {
+			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args)
+			return
+		}
+
+		value.SetUint(uint64(v))
+	case reflect.Float32, reflect.Float64:
+		rat := &big.Rat{}
+		if _, ok := rat.SetString(args); !ok {
+			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args)
+			return
+		}
+
+		float, exact := rat.Float64()
+		flag.Infof("convert %v to %v (exact: %v)", args, float, exact)
+		value.SetFloat(float)
+	case reflect.Complex64, reflect.Complex128:
+		var cplx complex128
+
+		if cplx, err = strconv.ParseComplex(args, 128); err != nil {
+			err = fmt.Errorf("should pass %v: %v", flag.Hint(), args)
+			return
+		}
+		value.SetComplex(cplx)
+	case reflect.String:
+		// copy the argument to string
+		value.SetString(args)
+	case reflect.Ptr:
+		shadow := reflect.New(value.Type().Elem())
+		if err = flag.parse(shadow.Elem(), args); err != nil {
+			// cannot setup the value
+			return
+		}
+		value.Set(shadow)
+	default:
+		err = fmt.Errorf("not support parse %v: %v", kind, value)
+		return
+	}
+
 	return
 }
 
