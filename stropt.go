@@ -273,7 +273,7 @@ func (stropt *StrOpt) prologue(value reflect.Value, typ reflect.Type) (err error
 		}
 
 		if value, ok := field_type.Tag.Lookup(KEY_CHOICE); ok {
-			choice := strings.Split(value, " \t")
+			choice := strings.Split(value, " ")
 			if err = field.SetChoice(choice); err != nil {
 				err = fmt.Errorf("set #%v field: %v", idx, err)
 				return
@@ -287,7 +287,7 @@ func (stropt *StrOpt) prologue(value reflect.Value, typ reflect.Type) (err error
 func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (field Field, err error) {
 	force_as_flag := false
 	if v, ok := typ.Tag.Lookup(KEY_ATTR); ok {
-		attrs := strings.Split(v, " \t")
+		attrs := strings.Split(v, " ")
 		sort.Strings(attrs)
 
 		idx := sort.SearchStrings(attrs, KEY_ATTR_FLAG)
