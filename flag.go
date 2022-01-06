@@ -63,6 +63,22 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 		return
 	}
 
+	if len(flag.choise) > 0 {
+		found := false
+
+		for _, token := range flag.choise {
+			if token == args[0] {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			err = fmt.Errorf("should pass one of [%v]: %v", strings.Join(flag.choise, " "), args[0])
+			return
+		}
+	}
+
 	// the special case
 	switch flag.Value.Interface().(type) {
 	case time.Duration, *time.Duration:
