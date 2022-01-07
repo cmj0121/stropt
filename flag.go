@@ -228,6 +228,13 @@ func (flag *Flag) parse(value reflect.Value, args string) (err error) {
 			return
 		}
 		value.Set(shadow)
+	case reflect.Slice:
+		shadow := reflect.New(value.Type().Elem()).Elem()
+		if err = flag.parse(shadow, args); err != nil {
+			// cannot setup the value
+			return
+		}
+		value.Set(reflect.Append(value, shadow))
 	default:
 		err = fmt.Errorf("not support parse %v: %v", kind, value)
 		return
