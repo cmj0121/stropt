@@ -54,12 +54,10 @@ func (flag *Flag) Prologue() (err error) {
 
 func (flag *Flag) prologue(typ reflect.Type) (err error) {
 	switch typ.Kind() {
-	case reflect.Array:
 	case reflect.Chan:
 	case reflect.Func:
 	case reflect.Interface:
 	case reflect.Map:
-	case reflect.Slice:
 	case reflect.Ptr:
 		err = flag.prologue(typ.Elem())
 		return
@@ -285,7 +283,12 @@ func (flag *Flag) GetShortcut() (shortcut string) {
 
 //show the type hint of the field
 func (flag *Flag) Hint() (hint string) {
-	switch kind := flag.StructField.Type.Kind(); kind {
+	hint = flag.hint(flag.StructField.Type)
+	return
+}
+
+func (flag *Flag) hint(typ reflect.Type) (hint string) {
+	switch kind := typ.Kind(); kind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		hint = "INT"
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -296,6 +299,8 @@ func (flag *Flag) Hint() (hint string) {
 		hint = "CPLX"
 	case reflect.String:
 		hint = "STR"
+	case reflect.Ptr:
+		hint = flag.hint(typ.Elem())
 	default:
 		switch flag.Value.Interface().(type) {
 		case time.Duration, *time.Duration:

@@ -81,8 +81,8 @@ func Example() {
 	//         --inner-x INT      the inner field
 	//
 	// arguments:
-	//         message            store string as position field
-	//         amount             store int as position field
+	//         message STR        store string as position field
+	//         amount INT         store int as position field
 	//
 	// sub-commands:
 	//         subc
