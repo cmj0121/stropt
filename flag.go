@@ -34,6 +34,40 @@ func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField)
 		StructField: typ,
 	}
 
+	err = flag.Prologue()
+	return
+}
+
+func (flag *Flag) Prologue() (err error) {
+	switch flag.Value.Interface().(type) {
+	case time.Time, net.IP, net.IPNet, net.Interface:
+	case *time.Time, *os.File, *net.IP, *net.IPNet, *net.Interface:
+	default:
+		if err = flag.prologue(flag.Value.Type()); err != nil {
+			err = fmt.Errorf("cannot set %v as flag: %v", flag.StructField.Name, err)
+			return
+		}
+	}
+
+	return
+}
+
+func (flag *Flag) prologue(typ reflect.Type) (err error) {
+	switch typ.Kind() {
+	case reflect.Array:
+	case reflect.Chan:
+	case reflect.Func:
+	case reflect.Interface:
+	case reflect.Map:
+	case reflect.Slice:
+	case reflect.Ptr:
+		err = flag.prologue(typ.Elem())
+		return
+	default:
+		return
+	}
+
+	err = fmt.Errorf("not support type: %v", typ.Kind())
 	return
 }
 
