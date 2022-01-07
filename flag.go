@@ -25,6 +25,9 @@ type Flag struct {
 
 	// the possible and valid value can be set
 	choise []string
+
+	// the default value
+	_default string
 }
 
 func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (flag *Flag, err error) {
@@ -32,6 +35,14 @@ func NewFlag(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField)
 		Tracer:      tracer,
 		Value:       value,
 		StructField: typ,
+	}
+
+	if v, ok := flag.Tag.Lookup(KEY_DEFAULT); ok {
+		// set default if defined as tag
+		flag._default = v
+	} else if !value.IsZero() {
+		// only set the default if value is not Zero
+		flag._default = fmt.Sprintf("%v", value)
 	}
 
 	err = flag.Prologue()
@@ -308,6 +319,10 @@ func (flag *Flag) hint(typ reflect.Type) (hint string) {
 		hint = "STR"
 	case reflect.Ptr:
 		hint = flag.hint(typ.Elem())
+	case reflect.Slice:
+		hint = fmt.Sprintf("[%v ...]", flag.hint(typ.Elem()))
+	case reflect.Array:
+		hint = fmt.Sprintf("[%v %v]", flag.hint(typ.Elem()), typ.Len())
 	default:
 		switch flag.Value.Interface().(type) {
 		case time.Duration, *time.Duration:
@@ -340,10 +355,6 @@ func (flag *Flag) GetChoice() (choise []string) {
 
 // the default value
 func (flag *Flag) Default() (_default string) {
-	if !flag.Value.IsZero() {
-		// set the default value
-		_default = fmt.Sprintf("%v", flag.Value)
-	}
-
+	_default = flag._default
 	return
 }

@@ -18,6 +18,9 @@ type Flip struct {
 
 	// the field of the struct
 	reflect.StructField
+
+	// the default value
+	_default string
 }
 
 func NewFlip(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (flip *Flip, err error) {
@@ -30,6 +33,14 @@ func NewFlip(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField)
 		Tracer:      tracer,
 		Value:       value,
 		StructField: typ,
+	}
+
+	if v, ok := flip.Tag.Lookup(KEY_DEFAULT); ok {
+		// set default if defined as tag
+		flip._default = v
+	} else if !value.IsZero() {
+		// only set the default if value is not Zero
+		flip._default = fmt.Sprintf("%v", value)
 	}
 
 	return
@@ -91,6 +102,7 @@ func (flip *Flip) GetChoice() (choise []string) {
 
 // the default value
 func (flip *Flip) Default() (_default string) {
+	_default = flip._default
 	return
 }
 

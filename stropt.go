@@ -386,6 +386,12 @@ func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (fi
 				return
 			}
 			err = stropt.setOption(field)
+		case reflect.Slice: // always be the argument
+			if field, err = NewArgument(stropt.Tracer, value, typ); err != nil {
+				err = fmt.Errorf("new flag from %v: %v", value, err)
+				return
+			}
+			err = stropt.setArgument(field)
 		default: // may flag option
 			if field, err = NewFlag(stropt.Tracer, value, typ); err != nil {
 				err = fmt.Errorf("new flag from %v: %v", value, err)

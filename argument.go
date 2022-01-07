@@ -16,21 +16,36 @@ type Argument struct {
 
 	// the shadow of the value, create and copy to original value
 	shadow reflect.Value
+
+	_default string
 }
 
 func NewArgument(tracer *trace.Tracer, value reflect.Value, typ reflect.StructField) (arg *Argument, err error) {
-	if !(value.Kind() == reflect.Ptr && typ.Type.Kind() == reflect.Ptr) {
-		err = fmt.Errorf("%T cannot be the args: %v", value.Interface(), value.Kind())
-		return
+	switch value.Kind() {
+	case reflect.Ptr:
+		shadow := reflect.New(typ.Type.Elem())
+		arg = &Argument{
+			Value:  value,
+			shadow: shadow,
+		}
+		arg.Flag, err = NewFlag(tracer, shadow.Elem(), typ)
+	default:
+		shadow := reflect.New(typ.Type).Elem()
+
+		arg = &Argument{
+			Value:  value,
+			shadow: shadow,
+		}
+		arg.Flag, err = NewFlag(tracer, shadow, typ)
 	}
 
-	shadow := reflect.New(typ.Type.Elem())
-	arg = &Argument{
-		Value:  value,
-		shadow: shadow,
+	if v, ok := arg.Tag.Lookup(KEY_DEFAULT); ok {
+		// set default if defined as tag
+		arg._default = v
+	} else if !value.IsZero() {
+		// only set the default if value is not Zero
+		arg._default = fmt.Sprintf("%v", value)
 	}
-	arg.Flag, err = NewFlag(tracer, shadow.Elem(), typ)
-
 	return
 }
 
@@ -63,10 +78,6 @@ func (arg *Argument) GetShortcut() (shortcut string) {
 
 // the default value
 func (arg *Argument) Default() (_default string) {
-	if !arg.Value.IsZero() {
-		// set the default value
-		_default = fmt.Sprintf("%v", arg.Value.Elem())
-	}
-
+	_default = arg._default
 	return
 }
