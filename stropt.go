@@ -473,7 +473,7 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 		help = fmt.Sprintf("%v [%v]", help, strings.Join(choice, " "))
 	}
 
-	desc = fmt.Sprintf("%3v %v", shortcut, name)
+	desc = fmt.Sprintf("%3v %v %v", shortcut, name, field.Hint())
 	switch _default := field.Default(); _default {
 	case "":
 		desc = fmt.Sprintf("    %-22v %v", desc, help)

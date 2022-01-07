@@ -293,13 +293,13 @@ func (flag *Flag) Hint() (hint string) {
 	case reflect.Float32, reflect.Float64:
 		hint = "RAT"
 	case reflect.Complex64, reflect.Complex128:
-		hint = "COMPLEX"
+		hint = "CPLX"
 	case reflect.String:
 		hint = "STR"
 	default:
 		switch flag.Value.Interface().(type) {
 		case time.Duration, *time.Duration:
-			hint = "DURATION"
+			hint = "TIME"
 		case os.File, *os.File:
 			hint = "FILE"
 		case net.IP, *net.IP:
@@ -308,8 +308,6 @@ func (flag *Flag) Hint() (hint string) {
 			hint = "CIDR"
 		case net.Interface, *net.Interface:
 			hint = "IFACE"
-		default:
-			hint = "ARGS"
 		}
 	}
 

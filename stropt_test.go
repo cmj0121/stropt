@@ -73,12 +73,12 @@ func Example() {
 	//      -v --version          show the version and exit
 	//         --flip             store true/false field
 	//      -f --flip-2
-	//      -a --age              age [default: 21]
-	//         --number           store integer
-	//         --name             name [default: mock-name]
-	//      -p --price            store float number [default: 12.34]
-	//      -P --point
-	//         --inner-x          the inner field
+	//      -a --age UINT         age [default: 21]
+	//         --number INT       store integer
+	//         --name STR         name [default: mock-name]
+	//      -p --price RAT        store float number [default: 12.34]
+	//      -P --point CPLX
+	//         --inner-x INT      the inner field
 	//
 	// arguments:
 	//         message            store string as position field

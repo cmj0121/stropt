@@ -93,3 +93,8 @@ func (flip *Flip) GetChoice() (choise []string) {
 func (flip *Flip) Default() (_default string) {
 	return
 }
+
+// the hint of the flip, should empty
+func (flip *Flip) Hint() (hint string) {
+	return
+}

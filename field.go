@@ -22,6 +22,9 @@ type Field interface {
 	// get the choice
 	GetChoice() []string
 
+	// the type hint of the field
+	Hint() string
+
 	// the default value
 	Default() string
 }

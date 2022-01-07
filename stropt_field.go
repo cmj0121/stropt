@@ -38,3 +38,8 @@ func (stropt *StrOpt) GetChoice() (choise []string) {
 func (stropt *StrOpt) Default() (def string) {
 	return
 }
+
+// the hint of the sub-command, should empty
+func (stropt *StrOpt) Hint() (hint string) {
+	return
+}
