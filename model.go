@@ -3,6 +3,8 @@ package stropt
 import (
 	"fmt"
 	"os"
+
+	"github.com/cmj0121/trace"
 )
 
 // the helper model for show the help message
@@ -11,9 +13,17 @@ type Help struct {
 	Help bool `shortcut:"h" name:"help" desc:"show this help message and exit" callback:"Help_"`
 }
 
+type Log struct {
+	Level string `shortcut:"l" name:"level" choice:"error warn info debug trace" desc:"the log level"`
+
+	*trace.Tracer `-` //nolint
+}
+
 // the help model for show the version info
 type Model struct {
 	Help
+
+	Log
 
 	// this is the helper utility and show the version info
 	Version bool `shortcut:"v" name:"version" desc:"show the version and exit" callback:"Version_"`

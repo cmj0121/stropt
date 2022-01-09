@@ -70,6 +70,7 @@ func Example() {
 	//
 	// options:
 	//      -h --help             show this help message and exit
+	//      -l --level STR        the log level [error warn info debug trace]
 	//      -v --version          show the version and exit
 	//         --flip             store true/false field
 	//      -f --flip-2
