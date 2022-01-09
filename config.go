@@ -6,7 +6,7 @@ const (
 	// the version meta
 	MAJOR = 0 // bump when API changed
 	MINOR = 3 // bump when new feature add
-	MACRO = 0 // bump when bug fixed
+	MACRO = 2 // bump when bug fixed
 )
 
 // pre-defined key of the tag
