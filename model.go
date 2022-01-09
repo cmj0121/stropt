@@ -13,28 +13,30 @@ type Help struct {
 	Help bool `shortcut:"h" name:"help" desc:"show this help message and exit" callback:"Help_"`
 }
 
-type Log struct {
-	Level string `shortcut:"l" choice:"error warn info debug trace" desc:"the log level" callback:"Level_"`
+// the help model for show the version info
+type Model struct {
+	Help
 
-	*trace.Tracer `-` //nolint
+	// this is the helper utility and show the version info
+	Version bool `shortcut:"v" name:"version" desc:"show the version and exit" callback:"Version_"`
 }
 
-func (log *Log) Level_(stropt *StrOpt, _field Field) (err error) {
+type LogModel struct {
+	Help
+
+	// this is the helper utility and show the version info
+	Version bool `shortcut:"v" name:"version" desc:"show the version and exit" callback:"Version_"`
+
+	Level         string `shortcut:"l" choice:"error warn info debug trace" desc:"the log level" callback:"Level_"`
+	*trace.Tracer `-`    //nolint
+}
+
+func (log *LogModel) Level_(stropt *StrOpt, _field Field) (err error) {
 	if log.Tracer != nil {
 		level := trace.LevelFromStr(log.Level)
 		log.Tracer.Level(level)
 	}
 	return
-}
-
-// the help model for show the version info
-type Model struct {
-	Help
-
-	Log
-
-	// this is the helper utility and show the version info
-	Version bool `shortcut:"v" name:"version" desc:"show the version and exit" callback:"Version_"`
 }
 
 func init() {

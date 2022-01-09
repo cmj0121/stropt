@@ -29,7 +29,7 @@ type Sub struct {
 }
 
 type Foo struct {
-	Model
+	LogModel
 
 	// the hidden field
 	Ignore bool `-` //nolint
@@ -70,8 +70,8 @@ func Example() {
 	//
 	// options:
 	//      -h --help             show this help message and exit
-	//      -l --level STR        the log level [error warn info debug trace]
 	//      -v --version          show the version and exit
+	//      -l --level STR        the log level [error warn info debug trace]
 	//         --flip             store true/false field
 	//      -f --flip-2
 	//      -a --age UINT         age [default: 21]
