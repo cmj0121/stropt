@@ -14,9 +14,17 @@ type Help struct {
 }
 
 type Log struct {
-	Level string `shortcut:"l" name:"level" choice:"error warn info debug trace" desc:"the log level"`
+	Level string `shortcut:"l" choice:"error warn info debug trace" desc:"the log level" callback:"Level_"`
 
 	*trace.Tracer `-` //nolint
+}
+
+func (log *Log) Level_(stropt *StrOpt, _field Field) (err error) {
+	if log.Tracer != nil {
+		level := trace.LevelFromStr(log.Level)
+		log.Tracer.Level(level)
+	}
+	return
 }
 
 // the help model for show the version info
