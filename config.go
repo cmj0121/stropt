@@ -5,8 +5,8 @@ const (
 	PROJ_NAME = "stropt"
 	// the version meta
 	MAJOR = 0 // bump when API changed
-	MINOR = 2 // bump when new feature add
-	MACRO = 1 // bump when bug fixed
+	MINOR = 3 // bump when new feature add
+	MACRO = 0 // bump when bug fixed
 )
 
 // pre-defined key of the tag
