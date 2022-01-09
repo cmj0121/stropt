@@ -139,6 +139,12 @@ func (stropt *StrOpt) Usage(w io.Writer) {
 	w.Write(buff.Bytes()) // nolint
 }
 
+// show the error message and usage
+func (stropt *StrOpt) ErrorAndUsage(err error, w io.Writer) {
+	w.Write([]byte(fmt.Sprintf("error: %v\n", err))) //nolint
+	stropt.Usage(w)
+}
+
 // parse the input arguments and fill the *Struct, return error when failure.
 func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 	stropt.Tracef("start parse: %v", args)
@@ -251,8 +257,7 @@ func (stropt *StrOpt) parse(field Field, args ...string) (n int, err error) {
 // parse from the command-line arguments
 func (stropt *StrOpt) Run() {
 	if _, err := stropt.Parse(os.Args[1:]...); err != nil {
-		os.Stderr.WriteString(fmt.Sprintf("error: %v\n", err))
-		stropt.Usage(os.Stderr)
+		stropt.ErrorAndUsage(err, os.Stderr)
 		os.Exit(1)
 	}
 }
