@@ -124,7 +124,7 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 
 		err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
 		return
-	case *os.File:
+	case os.File, *os.File:
 		var file *os.File
 
 		if file, err = os.Open(args[0]); err == nil {
