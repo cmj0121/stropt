@@ -133,6 +133,12 @@ func (flag *Flag) Parse(args ...string) (n int, err error) {
 			return
 		}
 
+		if file != nil {
+			flag.setValue(reflect.ValueOf(file))
+			n++
+			return
+		}
+
 		err = fmt.Errorf("should pass %v: %v", flag.Hint(), args[0])
 		return
 	case net.IP, *net.IP:
