@@ -41,7 +41,7 @@ type Foo struct {
 	Flip2 bool `shortcut:"f" name:"flip-2"`
 
 	// the argument
-	Age    uint       `shortcut:"a" default:"21" desc:"age"`
+	Age    uint       `attr:"required" shortcut:"a" default:"21" desc:"age"`
 	Number int        `desc:"store integer"`
 	Name   string     `default:"mock-name" desc:"name"`
 	Price  float64    `shortcut:"p" desc:"store float number"`
@@ -74,7 +74,7 @@ func Example() {
 	//      -l --level STR        the log level [error warn info debug trace]
 	//         --flip             store true/false field
 	//      -f --flip-2
-	//      -a --age UINT         age [default: 21]
+	//      -a --age UINT         age [default: 21] (required)
 	//         --number INT       store integer
 	//         --name STR         name [default: mock-name]
 	//      -p --price RAT        store float number [default: 12.34]
