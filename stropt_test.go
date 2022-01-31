@@ -25,7 +25,7 @@ type Sub struct {
 	// the flip option, store true/false
 	Flip bool `desc:"store true/false field"`
 	// the argument
-	Age uint `shortcut:"a"`
+	Age *uint `attr:"required"`
 }
 
 type Foo struct {
@@ -299,5 +299,18 @@ func TestParseArgument(t *testing.T) {
 	if _, err := parser.Parse("ccc"); err == nil {
 		// expect cannot parse argument
 		t.Errorf("expect cannot parse extra argument")
+	}
+}
+
+func TestRequired(t *testing.T) {
+	foo := &Foo{}
+	parser := MustNew(foo)
+
+	if _, err := parser.Parse("subc"); err == nil {
+		t.Fatalf("expect required is works")
+	} else if _, err := parser.Parse("subc", "--flip"); err == nil {
+		t.Fatalf("expect required is works")
+	} else if _, err := parser.Parse("subc", "12"); err != nil {
+		t.Errorf("cannot setup the required field: %v", err)
 	}
 }
