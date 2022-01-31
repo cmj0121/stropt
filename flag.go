@@ -364,3 +364,8 @@ func (flag *Flag) Default() (_default string) {
 	_default = flag._default
 	return
 }
+
+// check the field set or not
+func (flag *Flag) IsZero() bool {
+	return flag.Value.IsZero()
+}

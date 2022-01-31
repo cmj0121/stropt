@@ -25,8 +25,9 @@ var (
 	KEY_DEFAULT = "default"
 
 	// the attribute of field
-	KEY_ATTR      = "attr"
-	KEY_ATTR_FLAG = "flag"
+	KEY_ATTR          = "attr"
+	KEY_ATTR_FLAG     = "flag"
+	KEY_ATTR_REQUIRED = "required"
 )
 
 // pre-defined tag used in stropt

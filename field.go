@@ -27,4 +27,7 @@ type Field interface {
 
 	// the default value
 	Default() string
+
+	// check the field set or not
+	IsZero() bool
 }

@@ -238,6 +238,8 @@ func (stropt *StrOpt) Parse(args ...string) (n int, err error) {
 		idx++
 	}
 
+	// run the final check after parse the pass options
+	err = stropt.epologue()
 	return
 }
 
@@ -285,6 +287,45 @@ func (stropt *StrOpt) prologue(value reflect.Value, typ reflect.Type) (err error
 			}
 		}
 	}
+	return
+}
+
+// run the clean-up and validation after parse the pass options
+func (stropt *StrOpt) epologue() (err error) {
+	stropt.Debugf("run epologue ...")
+
+	for _, field := range stropt.fields {
+		if stropt.field_set_required(field) && field.IsZero() {
+			err = fmt.Errorf("option %#v is required but not set", field.GetName())
+			return
+		}
+	}
+
+	for _, field := range stropt.args_fields {
+		if stropt.field_set_required(field) && field.IsZero() {
+			err = fmt.Errorf("option %#v is required but not set", field.GetName())
+			return
+		}
+	}
+
+	return
+}
+
+func (stropt *StrOpt) field_set_required(field Field) (set bool) {
+	tag := field.GetTag()
+
+	if v, ok := tag.Lookup(KEY_ATTR); ok {
+		// check all the required field already set or not
+		attrs := strings.Split(v, " ")
+		sort.Strings(attrs)
+
+		idx := sort.SearchStrings(attrs, KEY_ATTR_REQUIRED)
+		if idx >= 0 && idx < len(attrs) && attrs[idx] == KEY_ATTR_REQUIRED {
+			stropt.Debugf("detect %#v set required", field.GetName())
+			set = true
+		}
+	}
+
 	return
 }
 
@@ -478,6 +519,11 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 	// the helper description of the field
 	help, _ := field.GetTag().Lookup(KEY_DESC)
 
+	// the attribute of the field
+	attr, _ := field.GetTag().Lookup(KEY_ATTR)
+	attrs := strings.Split(attr, " ")
+	sort.Strings(attrs)
+
 	choice := field.GetChoice()
 	if len(choice) > 0 {
 		// append the choice
@@ -490,6 +536,12 @@ func (stropt *StrOpt) description(field Field, sub bool) (desc string) {
 		desc = fmt.Sprintf("    %-22v %v", desc, help)
 	default:
 		desc = fmt.Sprintf("    %-22v %v [default: %v]", desc, help, _default)
+	}
+
+	idx := sort.SearchStrings(attrs, KEY_ATTR_REQUIRED)
+	if idx >= 0 && idx < len(attrs) && attrs[idx] == KEY_ATTR_REQUIRED {
+		// set option is required
+		desc = fmt.Sprintf("%v (required)", desc)
 	}
 
 	desc = strings.TrimRight(desc, " ")

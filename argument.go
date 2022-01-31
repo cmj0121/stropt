@@ -81,3 +81,8 @@ func (arg *Argument) Default() (_default string) {
 	_default = arg._default
 	return
 }
+
+// check the field set or not
+func (arg *Argument) IsZero() bool {
+	return arg.Value.IsZero()
+}

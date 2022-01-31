@@ -110,3 +110,8 @@ func (flip *Flip) Default() (_default string) {
 func (flip *Flip) Hint() (hint string) {
 	return
 }
+
+// check the field set or not
+func (flip *Flip) IsZero() bool {
+	return flip.Value.IsZero()
+}
