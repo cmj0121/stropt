@@ -9,7 +9,8 @@ import (
 
 type Inner struct {
 	// the hidden field
-	Ignore bool `-` //nolint
+	Ignore  bool `-` //nolint
+	Ignore2 bool `attr:"-"`
 	// the innter field and should not process
 	ignore bool `desc:"the ignore field"` //nolint
 

@@ -333,6 +333,11 @@ func (stropt *StrOpt) field_set_required(field Field) (set bool) {
 func (stropt *StrOpt) setField(value reflect.Value, typ reflect.StructField) (field Field, err error) {
 	force_as_flag := false
 	if v, ok := typ.Tag.Lookup(KEY_ATTR); ok {
+		if v == TAG_IGNORE {
+			stropt.Debugf("field %v expressily been skip", value)
+			return
+		}
+
 		attrs := strings.Split(v, " ")
 		sort.Strings(attrs)
 
