@@ -26,7 +26,7 @@ type Foo struct {
 
 	Flip bool `shortcut:"f" desc:"store true/false value"`
 
-	Number int  `shortcut:"n" desc:"store integer"`
+	Number int  `shortcut:"n" attr:"required" desc:"store integer"`
 	Age    uint `shortcut:"a" default:"21" desc:"store unsigned integer"`
 
 	Name *string `desc:"save name as argument"`
